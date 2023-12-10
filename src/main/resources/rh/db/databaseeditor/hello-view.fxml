@@ -15,13 +15,13 @@
 
 <BorderPane minHeight="400.0" minWidth="400.0" prefHeight="489.0" prefWidth="783.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="rh.db.databaseeditor.DBEditorController">
    <left>
-      <VBox alignment="TOP_CENTER" prefHeight="441.0" prefWidth="170.0" style="-fx-background-color: #aaaaaa;" BorderPane.alignment="CENTER">
+      <VBox fx:id="responsesMenu" alignment="TOP_CENTER" disable="true" prefHeight="441.0" prefWidth="170.0" style="-fx-background-color: #aaaaaa;" BorderPane.alignment="CENTER">
          <children>
             <MenuButton fx:id="tablesMenu" mnemonicParsing="false" prefHeight="25.0" prefWidth="156.0" text="Таблицы" />
          </children></VBox>
    </left>
    <center>
-      <TableView fx:id="responceTable" prefHeight="369.0" prefWidth="559.0" BorderPane.alignment="CENTER">
+      <TableView fx:id="responseTable" prefHeight="369.0" prefWidth="559.0" BorderPane.alignment="CENTER">
          <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>

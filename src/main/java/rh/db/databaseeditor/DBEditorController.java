@@ -9,30 +9,40 @@ import java.sql.*;
 
 public class DBEditorController {
     @FXML
-    public HBox login_box;
+    private HBox login_box;
     @FXML
-    private VBox loginInfo;
+    private VBox loginInfo, responsesMenu;
     @FXML
     private Label usernameInfo, dbNameInfo;
     @FXML
-    private TextField dbName, username;
+    protected TextField dbName, username;
     @FXML
-    private PasswordField password;
+    protected PasswordField password;
     @FXML
     private Button logout;
     @FXML
     private MenuButton tablesMenu;
+    @FXML
+    private TableView responseTable;
+
+    protected static String db, user, pass;
+
+    protected String getURLAuthPart(){
+        db = dbName.getText();
+        user = username.getText();
+        pass = password.getText();
+        return "databaseName=" + db + ";" +
+               "username=" + user + ";" +
+               "password=" + pass + ";";
+    }
 
     @FXML
     protected void onLoginButtonClick() {
         Alert resultInfo = new Alert(Alert.AlertType.INFORMATION);
-        final String URL =
-                "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" +
-                "databaseName=" + dbName.getText() + ";" +
-                "username=" + username.getText() + ";" +
-                "password=" + password.getText() + ";";
+        final String URL = "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" + getURLAuthPart();
         try (Connection connection = DriverManager.getConnection(URL);
              Statement statement = connection.createStatement()) {
+
             DBEditorApplication.setConnection(connection);
             DBEditorApplication.setStatement(statement);
 
@@ -54,6 +64,7 @@ public class DBEditorController {
             dbNameInfo.setText(dbName.getText());
             loginInfo.setPrefWidth(100);
             loginInfo.setVisible(true);
+            responsesMenu.setDisable(false);
         }
         // Произошла ошибка при подключении к серверу и базе данных
         catch (SQLException e) {
@@ -68,7 +79,7 @@ public class DBEditorController {
             resultInfo.showAndWait();
         }
     }
-
+    @FXML
     public void onLogoutButtonClick() {
         // Отключение от базы данных
         DBEditorApplication.logout();
@@ -85,6 +96,8 @@ public class DBEditorController {
         loginInfo.setVisible(false);
         loginInfo.setPrefWidth(0);
         tablesMenu.getItems().clear();
+        responseTable.getColumns().clear();
+        responsesMenu.setDisable(true);
     }
 
     private void generateTablesMenu() {
@@ -95,14 +108,16 @@ public class DBEditorController {
         try (ResultSet resultSet = DBEditorApplication.getStatement().executeQuery(sqlReq)) {
             while (resultSet.next()) {
                 MenuItem item = new MenuItem(resultSet.getString(1));
-
+                item.setOnAction(event -> {
+                    responseTable.getColumns().clear();
+                    responseTable.getItems().clear();
+                    Responses.getResponse(responseTable, item.getText());
+                });
                 tablesMenu.getItems().add(item);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-
 
 }
