@@ -1,17 +1,13 @@
 package rh.db.databaseeditor;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
-public class HelloController {
+public class DBEditorController {
     @FXML
     public HBox login_box;
     @FXML
@@ -24,6 +20,8 @@ public class HelloController {
     private PasswordField password;
     @FXML
     private Button logout;
+    @FXML
+    private MenuButton tablesMenu;
 
     @FXML
     protected void onLoginButtonClick() {
@@ -35,8 +33,8 @@ public class HelloController {
                 "password=" + password.getText() + ";";
         try (Connection connection = DriverManager.getConnection(URL);
              Statement statement = connection.createStatement()) {
-            HelloApplication.setConnection(connection);
-            HelloApplication.setStatement(statement);
+            DBEditorApplication.setConnection(connection);
+            DBEditorApplication.setStatement(statement);
 
             // Скрываем форму авторизации
             login_box.setVisible(false);
@@ -48,12 +46,16 @@ public class HelloController {
                     "\" в базе данных \"" + dbName.getText() + "\" прошла успешно"
             );
             resultInfo.showAndWait();
+
+            generateTablesMenu();
+
             logout.setDisable(false);
             usernameInfo.setText(username.getText());
             dbNameInfo.setText(dbName.getText());
-            loginInfo.prefWidth(100);
+            loginInfo.setPrefWidth(100);
             loginInfo.setVisible(true);
         }
+        // Произошла ошибка при подключении к серверу и базе данных
         catch (SQLException e) {
             e.printStackTrace();
             resultInfo.setTitle("Ошибка авторизации");
@@ -69,18 +71,38 @@ public class HelloController {
 
     public void onLogoutButtonClick() {
         // Отключение от базы данных
-        HelloApplication.logout();
+        DBEditorApplication.logout();
 
         // Отображаем форму авторизации
         login_box.setVisible(true);
 
         // Сбрасываем данные о соединении
-        HelloApplication.setConnection(null);
-        HelloApplication.setStatement(null);
+        DBEditorApplication.setConnection(null);
+        DBEditorApplication.setStatement(null);
         usernameInfo.setText("NONE");
         dbNameInfo.setText("NONE");
         logout.setDisable(true);
         loginInfo.setVisible(false);
-        loginInfo.prefWidth(0);
+        loginInfo.setPrefWidth(0);
+        tablesMenu.getItems().clear();
     }
+
+    private void generateTablesMenu() {
+        tablesMenu.getItems().clear();
+        String sqlReq = "SELECT name " +
+                "FROM SYSOBJECTS " +
+                "WHERE xtype = 'U'";
+        try (ResultSet resultSet = DBEditorApplication.getStatement().executeQuery(sqlReq)) {
+            while (resultSet.next()) {
+                MenuItem item = new MenuItem(resultSet.getString(1));
+
+                tablesMenu.getItems().add(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 }

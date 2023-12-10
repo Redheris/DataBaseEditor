@@ -66,7 +66,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>rh.db.databaseeditor/rh.db.databaseeditor.HelloApplication</mainClass>
+                            <mainClass>rh.db.databaseeditor/rh.db.databaseeditor.DBEditorApplication</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>
@@ -87,7 +87,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
                             <mainClass>
-                                rh.db.databaseeditor.HelloApplication
+                                rh.db.databaseeditor.DBEditorApplication
                             </mainClass>
                         </manifest>
                     </archive>
