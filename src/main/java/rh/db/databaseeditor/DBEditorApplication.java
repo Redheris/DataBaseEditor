@@ -21,7 +21,7 @@ public class DBEditorApplication extends Application {
     public void start(Stage stage) throws IOException {
         ResultSet resultSet = null;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(DBEditorApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(DBEditorApplication.class.getResource("dbe-view.fxml"));
 
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Bookshop Database Editor");
