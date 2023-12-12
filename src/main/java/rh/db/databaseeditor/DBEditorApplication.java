@@ -6,7 +6,9 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class DBEditorApplication extends Application {
 
@@ -19,9 +21,7 @@ public class DBEditorApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        ResultSet resultSet = null;
-
-        FXMLLoader fxmlLoader = new FXMLLoader(DBEditorApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(DBEditorApplication.class.getResource("dbe-view.fxml"));
 
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Bookshop Database Editor");

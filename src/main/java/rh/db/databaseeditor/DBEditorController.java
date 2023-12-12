@@ -102,7 +102,7 @@ public class DBEditorController {
 
     private void generateTablesMenu() {
         tablesMenu.getItems().clear();
-        String sqlReq = "SELECT name " +
+        String sqlReq = "SELECT * " +
                 "FROM SYSOBJECTS " +
                 "WHERE xtype = 'U'";
         try (ResultSet resultSet = DBEditorApplication.getStatement().executeQuery(sqlReq)) {
@@ -111,7 +111,7 @@ public class DBEditorController {
                 item.setOnAction(event -> {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
-                    Responses.getResponse(responseTable, item.getText());
+                    Responses.getFullTable(responseTable, item.getText());
                 });
                 tablesMenu.getItems().add(item);
             }
