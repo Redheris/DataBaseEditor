@@ -11,7 +11,7 @@ public class DBEditorController {
     @FXML
     private HBox login_box;
     @FXML
-    private VBox loginInfo, responsesMenu;
+    private VBox loginInfo, responsesMenu, addNewRowBlock;
     @FXML
     private Label usernameInfo, dbNameInfo;
     @FXML
@@ -19,13 +19,14 @@ public class DBEditorController {
     @FXML
     protected PasswordField password;
     @FXML
-    private Button logout;
+    private Button logout, btnAddRow;
     @FXML
     private MenuButton tablesMenu;
     @FXML
-    private TableView responseTable;
+    private TableView responseTable, newRowTable;
 
     protected static String db, user, pass;
+    protected static boolean isAdmin;
 
     protected String getURLAuthPart(){
         db = dbName.getText();
@@ -65,6 +66,14 @@ public class DBEditorController {
             loginInfo.setPrefWidth(100);
             loginInfo.setVisible(true);
             responsesMenu.setDisable(false);
+
+            ResultSet checkIsAdmin = statement.executeQuery("SELECT IS_ROLEMEMBER ('db_owner')");
+            checkIsAdmin.next();
+            isAdmin = checkIsAdmin.getInt(1) == 1;
+
+            if (isAdmin) {
+                addNewRowBlock.setDisable(false);
+            }
         }
         // Произошла ошибка при подключении к серверу и базе данных
         catch (SQLException e) {
@@ -97,11 +106,16 @@ public class DBEditorController {
         loginInfo.setPrefWidth(0);
         tablesMenu.getItems().clear();
         responseTable.getColumns().clear();
+        responseTable.getItems().clear();
+        newRowTable.getColumns().clear();
+        newRowTable.getItems().clear();
+        addNewRowBlock.setDisable(true);
         responsesMenu.setDisable(true);
     }
 
     private void generateTablesMenu() {
         tablesMenu.getItems().clear();
+        newRowTable.getItems().clear();
         String sqlReq = "SELECT * " +
                 "FROM SYSOBJECTS " +
                 "WHERE xtype = 'U'";
@@ -111,7 +125,9 @@ public class DBEditorController {
                 item.setOnAction(event -> {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
-                    Responses.getFullTable(responseTable, item.getText());
+                    newRowTable.getColumns().clear();
+                    newRowTable.getItems().clear();
+                    Responses.getFullTable(responseTable, item.getText(), newRowTable);
                 });
                 tablesMenu.getItems().add(item);
             }

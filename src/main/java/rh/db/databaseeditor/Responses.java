@@ -10,12 +10,12 @@ import java.util.List;
 
 
 public class Responses {
-    public static void getFullTable(TableView table, String tableName) {
+    public static void getFullTable(TableView table, String tableName, TableView newRowTable) {
         final String URL =
                 "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" +
                 "databaseName=" + DBEditorController.db + ";" +
                 "username=" + DBEditorController.user + ";" +
-                "password=" + DBEditorController.pass + ";";;
+                "password=" + DBEditorController.pass + ";";
 
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
@@ -61,6 +61,14 @@ public class Responses {
                         });
                         column.setEditable(true);
                         table.getColumns().add(column);
+
+                        column = new TableColumn<>(colName);
+                        int col2 = colIndex;
+                        column.setCellValueFactory(cellData -> {
+                            List<Object> rowData = cellData.getValue();
+                            return new SimpleObjectProperty<>(rowData.get(col2 - 1));
+                        });
+                        newRowTable.getColumns().add(column);
                         break;
                     }
                 }
