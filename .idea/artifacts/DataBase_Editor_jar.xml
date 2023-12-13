@@ -1,9 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="DataBase Editor:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/DataBase_Editor_jar</output-path>
-    <root id="archive" name="DataBase Editor.jar">
-      <element id="library" level="project" name="libs" />
-      <element id="file-copy" path="$PROJECT_DIR$/target/DataBaseEditor-1.0-SNAPSHOT.jar" />
-    </root>
-  </artifact>
-</component>
