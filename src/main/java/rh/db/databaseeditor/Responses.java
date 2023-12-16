@@ -8,14 +8,46 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Responses {
-    public static void getFullTable(TableView table, String tableName, TableView newRowTable) {
-        final String URL =
-                "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" +
+    private static String getURL() {
+        return "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" +
                 "databaseName=" + DBEditorController.db + ";" +
                 "username=" + DBEditorController.user + ";" +
                 "password=" + DBEditorController.pass + ";";
+    }
+    private static void fillTableViewWithSelect (Connection connection, Statement st, TableView table, String sql) {
+        table.getColumns().clear();
+        table.getItems().clear();
+
+        // Заполняем список данными из результата запроса
+        List<Object[]> data = new ArrayList<>();
+        try {
+            ResultSet resData = st.executeQuery(sql);
+
+
+            int coluumnsCount = resData.getMetaData().getColumnCount();
+            while (resData.next()) {
+                Object[] rowData = new Object[coluumnsCount];
+                for (int i = 0; i < coluumnsCount; i++) {
+                    if (resData.getObject(i + 1) == null)
+                        rowData[i] = "NULL";
+                    else
+                        rowData[i] = resData.getObject(i + 1);
+                }
+                data.add(rowData);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Добавляем данные в таблицу
+        for (Object[] row : data) {
+            table.getItems().add(List.of(row));
+        }
+    }
+
+    public static void getFullTable(TableView table, String tableName, TableView newRowTable) {
+        final String URL = getURL();
 
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
@@ -59,7 +91,6 @@ public class Responses {
                             List<Object> rowData = cellData.getValue();
                             return new SimpleObjectProperty<>(rowData.get(col - 1));
                         });
-                        column.setEditable(true);
                         table.getColumns().add(column);
 
                         column = new TableColumn<>(colName);
@@ -74,25 +105,22 @@ public class Responses {
                 }
             }
 
-            // Заполняем список данными из результата запроса
-            List<Object[]> data = new ArrayList<>();
-            ResultSet resData = st.executeQuery("SELECT " + String.join(",", accessedColumns) + " FROM " + tableName);
-            while (resData.next()) {
-                Object[] rowData = new Object[accessedColumns.size()];
-                for (int i = 0; i < accessedColumns.size(); i++) {
-                    if (resData.getObject(i + 1) == null)
-                        rowData[i] = "NULL";
-                    else
-                        rowData[i] = resData.getObject(i + 1);
-                }
-                data.add(rowData);
-            }
-
-            // Добавляем данные в таблицу
-            for (Object[] row : data) {
-                table.getItems().add(List.of(row));
-            }
+            fillTableViewWithSelect(connection, st, table,
+                    "SELECT " + String.join(",", accessedColumns) + " FROM " + tableName
+            );
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void reportTopGenres (TableView table) {
+        String URL = getURL();
+        try (Connection connection = DriverManager.getConnection(URL);
+             Statement st = connection.createStatement()) {
+            fillTableViewWithSelect(connection, st, table, "EXEC proc_GenresTop '2022-01-01', '2023-01-01'");
+
+        }
+        catch (SQLException e) {
             e.printStackTrace();
         }
     }

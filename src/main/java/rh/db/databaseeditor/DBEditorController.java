@@ -1,6 +1,8 @@
 package rh.db.databaseeditor;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -22,6 +24,8 @@ public class DBEditorController {
     private Button logout, btnAddRow;
     @FXML
     private MenuButton tablesMenu;
+    @FXML
+    private MenuItem reportOrderSum, reportBookPeriodPreceeds, reportGenresTop, reportBookPeriodSupplies, reportAuthorBooks;
     @FXML
     private TableView responseTable, newRowTable;
 
@@ -74,6 +78,23 @@ public class DBEditorController {
             if (isAdmin) {
                 addNewRowBlock.setDisable(false);
             }
+
+            reportOrderSum.setOnAction(e -> {
+                getReportResult(reportOrderSum.getId());
+            });
+            reportBookPeriodPreceeds.setOnAction(e -> {
+                getReportResult(reportBookPeriodPreceeds.getId());
+            });
+            reportGenresTop.setOnAction(e -> {
+                getReportResult(reportGenresTop.getId());
+                Responses.reportTopGenres(responseTable);
+            });
+            reportAuthorBooks.setOnAction(e -> {
+                getReportResult(reportAuthorBooks.getId());
+            });
+            reportBookPeriodSupplies.setOnAction(e -> {
+                getReportResult(reportBookPeriodSupplies.getId());
+            });
         }
         // Произошла ошибка при подключении к серверу и базе данных
         catch (SQLException e) {
@@ -134,6 +155,10 @@ public class DBEditorController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void getReportResult(String reportName) {
+        System.out.println(reportName);
     }
 
 }
