@@ -6,6 +6,7 @@ import javafx.scene.control.TableView;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Responses {
@@ -15,7 +16,8 @@ public class Responses {
                 "username=" + DBEditorController.user + ";" +
                 "password=" + DBEditorController.pass + ";";
     }
-    private static void fillTableViewWithSelect (Connection connection, Statement st, TableView table, String sql) {
+    private static void fillTableViewWithSelect (Connection connection, Statement st, TableView table,
+                                                 ArrayList<String> colNames, String sql) {
         table.getColumns().clear();
         table.getItems().clear();
 
@@ -24,6 +26,16 @@ public class Responses {
         try {
             ResultSet resData = st.executeQuery(sql);
 
+            int col = 0;
+            for (String colName : colNames) {
+                TableColumn<List<Object>, Object> column = new TableColumn<>(colName);
+                int colIndex = col++;
+                column.setCellValueFactory(cellData -> {
+                    List<Object> rowData = cellData.getValue();
+                    return new SimpleObjectProperty<>(rowData.get(colIndex));
+                });
+                table.getColumns().add(column);
+            }
 
             int coluumnsCount = resData.getMetaData().getColumnCount();
             while (resData.next()) {
@@ -67,8 +79,9 @@ public class Responses {
                                 + "@column_name = '" + colName + "'"
                 );
                 // Добавление в таблицу JavaFX столбцов, на чтение которых есть разрешение
+                // Проход по таблице всех разрешений для текущего столбца
                 while (columnPriviligies.next()) {
-                    // Разрешение на чтение всегда "SELECT"
+                    // Разрешение на чтение должно быть "SELECT"
                     if (!columnPriviligies.getString("PRIVILEGE").equals("SELECT"))
                         continue;
                     // Имя пользователя или роли, которым разрешено чтение
@@ -78,26 +91,26 @@ public class Responses {
                             "SELECT IS_ROLEMEMBER ('db_owner'), IS_ROLEMEMBER ('"+ grantee + "')"
                     );
                     checkRoles.next();
-                    // Проврка наличия разрешения у текущег пользователя
+                    // Проврка наличия разрешения у текущего пользователя
                     if (checkRoles.getInt(1) == 1
                             || grantee.equals(metaData.getUserName())
                             || checkRoles.getInt(2) == 1) {
                         accessedColumns.add(colName);
                         colIndex++;
                         // Добавление столбца в таблицу
-                        TableColumn<List<Object>, Object>  column = new TableColumn<>(colName);
+//                        TableColumn<List<Object>, Object>  column = new TableColumn<>(colName);
+//                        int col = colIndex;
+//                        column.setCellValueFactory(cellData -> {
+//                            List<Object> rowData = cellData.getValue();
+//                            return new SimpleObjectProperty<>(rowData.get(col - 1));
+//                        });
+//                        table.getColumns().add(column);
+
+                        TableColumn<List<Object>, Object> column = new TableColumn<>(colName);
                         int col = colIndex;
                         column.setCellValueFactory(cellData -> {
                             List<Object> rowData = cellData.getValue();
                             return new SimpleObjectProperty<>(rowData.get(col - 1));
-                        });
-                        table.getColumns().add(column);
-
-                        column = new TableColumn<>(colName);
-                        int col2 = colIndex;
-                        column.setCellValueFactory(cellData -> {
-                            List<Object> rowData = cellData.getValue();
-                            return new SimpleObjectProperty<>(rowData.get(col2 - 1));
                         });
                         newRowTable.getColumns().add(column);
                         break;
@@ -106,6 +119,7 @@ public class Responses {
             }
 
             fillTableViewWithSelect(connection, st, table,
+                    accessedColumns,
                     "SELECT " + String.join(",", accessedColumns) + " FROM " + tableName
             );
         } catch (SQLException e) {
@@ -113,12 +127,18 @@ public class Responses {
         }
     }
 
-    public static void reportTopGenres (TableView table) {
+    public static void reportTopGenres (TableView table, String dateFrom, String dateTo) {
         String URL = getURL();
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
-            fillTableViewWithSelect(connection, st, table, "EXEC proc_GenresTop '2022-01-01', '2023-01-01'");
-
+            ArrayList<String> colNames = new ArrayList<>(Arrays.asList(
+                    "Название жанра",
+                    "Количество проданных книг"
+            ));
+            fillTableViewWithSelect(connection, st, table,
+                    colNames,
+                    String.format("EXEC proc_GenresTop '%s', '%s'", dateFrom, dateTo)
+            );
         }
         catch (SQLException e) {
             e.printStackTrace();

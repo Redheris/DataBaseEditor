@@ -19,7 +19,6 @@ public class DBEditorApplication extends Application {
         launch();
     }
 
-    @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(DBEditorApplication.class.getResource("dbe-view.fxml"));
 

@@ -1,12 +1,16 @@
 package rh.db.databaseeditor;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.sql.*;
 
 public class DBEditorController {
@@ -23,7 +27,7 @@ public class DBEditorController {
     @FXML
     private Button logout, btnAddRow;
     @FXML
-    private MenuButton tablesMenu;
+    private MenuButton tablesMenu, reportsMenu;
     @FXML
     private MenuItem reportOrderSum, reportBookPeriodPreceeds, reportGenresTop, reportBookPeriodSupplies, reportAuthorBooks;
     @FXML
@@ -87,7 +91,10 @@ public class DBEditorController {
             });
             reportGenresTop.setOnAction(e -> {
                 getReportResult(reportGenresTop.getId());
-                Responses.reportTopGenres(responseTable);
+                String dateFrom = "";
+                String dateTo = "";
+
+                Responses.reportTopGenres(responseTable, dateFrom, dateTo);
             });
             reportAuthorBooks.setOnAction(e -> {
                 getReportResult(reportAuthorBooks.getId());
@@ -158,7 +165,24 @@ public class DBEditorController {
     }
 
     public void getReportResult(String reportName) {
-        System.out.println(reportName);
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("ReportModalWindow.fxml"));
+        Parent root;
+        try {
+            root = loader.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        // Создаем новое окно
+        Stage stage = new Stage();
+        stage.setScene(new Scene(root));
+        // Указываем, что оно модальное
+        stage.initModality(Modality.WINDOW_MODAL);
+        // Указываем, что оно должно блокировать главное окно
+        stage.initOwner(reportsMenu.getScene().getWindow());
+
+        // Открываем окно и ждем пока его закроют
+        stage.showAndWait();
     }
 
 }
