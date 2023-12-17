@@ -54,12 +54,12 @@
    <top>
       <HBox prefHeight="75.0" prefWidth="783.0" style="-fx-background-color: #7f7f7f;" BorderPane.alignment="CENTER_LEFT">
          <children>
-            <HBox fx:id="login_box" alignment="CENTER_LEFT" prefHeight="48.0" prefWidth="576.0" spacing="5.0">
+            <HBox fx:id="login_box" alignment="CENTER_LEFT" prefHeight="88.0" prefWidth="563.0" spacing="5.0">
                <children>
                   <TextField fx:id="dbName" promptText="Database Name" text="BOOKSHOP" />
                   <TextField fx:id="username" promptText="Username" />
                   <PasswordField fx:id="password" promptText="Password" />
-                  <Button mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="25.0" prefWidth="88.0" text="Соединить" />
+                  <Button mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="25.0" prefWidth="112.0" text="Соединить" />
                </children>
                <opaqueInsets>
                   <Insets />
@@ -88,11 +88,13 @@
                            </VBox.margin>
                            <font>
                               <Font name="System Bold" size="12.0" />
-                           </font></Label>
+                           </font>
+                        </Label>
                         <Label fx:id="usernameInfo" text="NONE">
                            <font>
                               <Font name="System Bold" size="12.0" />
-                           </font></Label>
+                           </font>
+                        </Label>
                      </children>
                      <HBox.margin>
                         <Insets bottom="5.0" top="5.0" />

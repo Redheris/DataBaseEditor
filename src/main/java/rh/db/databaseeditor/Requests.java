@@ -1,6 +1,7 @@
 package rh.db.databaseeditor;
 
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Responses {
+public class Requests {
     private static String getURL() {
         return "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" +
                 "databaseName=" + DBEditorController.db + ";" +
@@ -17,40 +18,38 @@ public class Responses {
                 "password=" + DBEditorController.pass + ";";
     }
     private static void fillTableViewWithSelect (Connection connection, Statement st, TableView table,
-                                                 ArrayList<String> colNames, String sql) {
+                                                 ArrayList<String> colNames, String sql) throws SQLException {
         table.getColumns().clear();
         table.getItems().clear();
 
         // Заполняем список данными из результата запроса
         List<Object[]> data = new ArrayList<>();
-        try {
-            ResultSet resData = st.executeQuery(sql);
 
-            int col = 0;
-            for (String colName : colNames) {
-                TableColumn<List<Object>, Object> column = new TableColumn<>(colName);
-                int colIndex = col++;
-                column.setCellValueFactory(cellData -> {
-                    List<Object> rowData = cellData.getValue();
-                    return new SimpleObjectProperty<>(rowData.get(colIndex));
-                });
-                table.getColumns().add(column);
-            }
+        ResultSet resData = st.executeQuery(sql);
 
-            int coluumnsCount = resData.getMetaData().getColumnCount();
-            while (resData.next()) {
-                Object[] rowData = new Object[coluumnsCount];
-                for (int i = 0; i < coluumnsCount; i++) {
-                    if (resData.getObject(i + 1) == null)
-                        rowData[i] = "NULL";
-                    else
-                        rowData[i] = resData.getObject(i + 1);
-                }
-                data.add(rowData);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        int col = 0;
+        for (String colName : colNames) {
+            TableColumn<List<Object>, Object> column = new TableColumn<>(colName);
+            int colIndex = col++;
+            column.setCellValueFactory(cellData -> {
+                List<Object> rowData = cellData.getValue();
+                return new SimpleObjectProperty<>(rowData.get(colIndex));
+            });
+            table.getColumns().add(column);
         }
+
+        int coluumnsCount = resData.getMetaData().getColumnCount();
+        while (resData.next()) {
+            Object[] rowData = new Object[coluumnsCount];
+            for (int i = 0; i < coluumnsCount; i++) {
+                if (resData.getObject(i + 1) == null)
+                    rowData[i] = "NULL";
+                else
+                    rowData[i] = resData.getObject(i + 1);
+            }
+            data.add(rowData);
+        }
+
 
         // Добавляем данные в таблицу
         for (Object[] row : data) {
@@ -60,6 +59,12 @@ public class Responses {
 
     public static void getFullTable(TableView table, String tableName, TableView newRowTable) {
         final String URL = getURL();
+
+        // FIXME Возвращает ошибку в консоль, не выплоняя setDisabled(false)
+        // Открываем админу доступ к добавлению новых записей
+        if (DBEditorController.isAdmin) {
+            DBEditorController.setDisableAddNewRowBlock(false);
+        }
 
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
@@ -132,6 +137,7 @@ public class Responses {
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
             ArrayList<String> colNames = new ArrayList<>(Arrays.asList(
+                    "ID жанра",
                     "Название жанра",
                     "Количество проданных книг"
             ));
@@ -142,6 +148,12 @@ public class Responses {
         }
         catch (SQLException e) {
             e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при генерации отчёта \"Рейтинг жанров\"");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
         }
     }
+
 }

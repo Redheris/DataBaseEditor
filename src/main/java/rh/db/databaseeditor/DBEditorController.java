@@ -17,7 +17,11 @@ public class DBEditorController {
     @FXML
     private HBox login_box;
     @FXML
-    private VBox loginInfo, responsesMenu, addNewRowBlock;
+    private VBox loginInfo;
+    @FXML
+    private VBox responsesMenu;
+    @FXML
+    private VBox addNewRowBlock;
     @FXML
     private Label usernameInfo, dbNameInfo;
     @FXML
@@ -35,6 +39,15 @@ public class DBEditorController {
 
     protected static String db, user, pass;
     protected static boolean isAdmin;
+
+    private void test(){
+        addNewRowBlock.setDisable(false);
+    }
+
+    public static void setDisableAddNewRowBlock(boolean b) {
+        DBEditorController db = new DBEditorController();
+        db.test();
+    }
 
     protected String getURLAuthPart(){
         db = dbName.getText();
@@ -74,33 +87,38 @@ public class DBEditorController {
             loginInfo.setPrefWidth(100);
             loginInfo.setVisible(true);
             responsesMenu.setDisable(false);
-
+            // Проверяем, является ли пользователь админ
             ResultSet checkIsAdmin = statement.executeQuery("SELECT IS_ROLEMEMBER ('db_owner')");
             checkIsAdmin.next();
             isAdmin = checkIsAdmin.getInt(1) == 1;
 
-            if (isAdmin) {
-                addNewRowBlock.setDisable(false);
-            }
-
+            // Создаём обработчики для отчётов
             reportOrderSum.setOnAction(e -> {
-                getReportResult(reportOrderSum.getId());
+                getReportParams(reportOrderSum.getText());
             });
             reportBookPeriodPreceeds.setOnAction(e -> {
-                getReportResult(reportBookPeriodPreceeds.getId());
+                getReportParams(reportBookPeriodPreceeds.getText());
             });
             reportGenresTop.setOnAction(e -> {
-                getReportResult(reportGenresTop.getId());
-                String dateFrom = "";
-                String dateTo = "";
-
-                Responses.reportTopGenres(responseTable, dateFrom, dateTo);
+//                getReportParams(reportGenresTop.getId());
+                ReportModalWindow.setReportParams(
+                        reportGenresTop.getText(),
+                        false,
+                        true
+                );
+                getReportParams(reportGenresTop.getText());
+                if (!ReportModalWindow.isCanceled())
+                    Requests.reportTopGenres(
+                            responseTable,
+                            ReportModalWindow.dateFromValue,
+                            ReportModalWindow.dateToValue
+                    );
             });
             reportAuthorBooks.setOnAction(e -> {
-                getReportResult(reportAuthorBooks.getId());
+                getReportParams(reportAuthorBooks.getText());
             });
             reportBookPeriodSupplies.setOnAction(e -> {
-                getReportResult(reportBookPeriodSupplies.getId());
+                getReportParams(reportBookPeriodSupplies.getText());
             });
         }
         // Произошла ошибка при подключении к серверу и базе данных
@@ -155,7 +173,7 @@ public class DBEditorController {
                     responseTable.getItems().clear();
                     newRowTable.getColumns().clear();
                     newRowTable.getItems().clear();
-                    Responses.getFullTable(responseTable, item.getText(), newRowTable);
+                    Requests.getFullTable(responseTable, item.getText(), newRowTable);
                 });
                 tablesMenu.getItems().add(item);
             }
@@ -164,9 +182,12 @@ public class DBEditorController {
         }
     }
 
-    public void getReportResult(String reportName) {
+    public void getReportParams(String reportName) {
+        responseTable.getColumns().clear();
+        responseTable.getItems().clear();
+        addNewRowBlock.setDisable(true);
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("ReportModalWindow.fxml"));
+        loader.setLocation(getClass().getResource("reportModalWindow.fxml"));
         Parent root;
         try {
             root = loader.load();
@@ -175,6 +196,8 @@ public class DBEditorController {
         }
         // Создаем новое окно
         Stage stage = new Stage();
+        stage.setTitle("Параметры отчёта \"" + reportName  + "\"");
+
         stage.setScene(new Scene(root));
         // Указываем, что оно модальное
         stage.initModality(Modality.WINDOW_MODAL);
