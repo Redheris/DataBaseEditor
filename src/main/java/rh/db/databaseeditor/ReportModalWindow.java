@@ -45,13 +45,15 @@ public class ReportModalWindow implements Initializable {
             reportInfo.showAndWait();
             return;
         }
-        if (dateFrom.getValue().isAfter(LocalDate.now()) || dateTo.getValue().isAfter(LocalDate.now())) {
+        if (dateIsNeeded && dateFrom.getValue() != null && dateTo.getValue() != null &&
+                (dateFrom.getValue().isAfter(LocalDate.now()) || dateTo.getValue().isAfter(LocalDate.now()))) {
             reportInfo.setTitle("Ошибка");
             reportInfo.setHeaderText("Временной период не может быть позже текущей даты");
             reportInfo.showAndWait();
             return;
         }
-        if (dateFrom.getValue().isAfter(dateTo.getValue())){
+        if (dateIsNeeded && dateFrom.getValue() != null && dateTo.getValue() != null &&
+                (dateFrom.getValue().isAfter(dateTo.getValue()))){
             reportInfo.setTitle("Ошибка");
             reportInfo.setHeaderText("Начальная дата не может быть позже конечной");
             reportInfo.showAndWait();
@@ -69,8 +71,10 @@ public class ReportModalWindow implements Initializable {
             reportInfo.show();
             return;
         }
-        dateFromValue = dateFrom.getValue().toString();
-        dateToValue = dateTo.getValue().toString();
+        if (dateIsNeeded) {
+            dateFromValue = dateFrom.getValue().toString();
+            dateToValue = dateTo.getValue().toString();
+        }
 
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();

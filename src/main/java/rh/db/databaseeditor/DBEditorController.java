@@ -94,7 +94,14 @@ public class DBEditorController {
 
             // Создаём обработчики для отчётов
             reportOrderSum.setOnAction(e -> {
+                ReportModalWindow.setReportParams(
+                        reportOrderSum.getText(),
+                        true,
+                        false
+                );
                 getReportParams(reportOrderSum.getText());
+                if (!ReportModalWindow.isCanceled())
+                    Requests.reportOrderSum(ReportModalWindow.idValue);
             });
             reportBookPeriodPreceeds.setOnAction(e -> {
                 getReportParams(reportBookPeriodPreceeds.getText());

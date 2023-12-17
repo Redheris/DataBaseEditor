@@ -62,9 +62,9 @@ public class Requests {
 
         // FIXME Возвращает ошибку в консоль, не выплоняя setDisabled(false)
         // Открываем админу доступ к добавлению новых записей
-        if (DBEditorController.isAdmin) {
-            DBEditorController.setDisableAddNewRowBlock(false);
-        }
+//        if (DBEditorController.isAdmin) {
+//            DBEditorController.setDisableAddNewRowBlock(false);
+//        }
 
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
@@ -155,5 +155,99 @@ public class Requests {
             errorAlert.showAndWait();
         }
     }
+    public static void reportOrderSum (String orderId) {
+        String URL = getURL();
+        String sql = "{CALL proc_totalSum(?, ?)}";
+        try (Connection connection = DriverManager.getConnection(URL);
+             CallableStatement cs = connection.prepareCall(sql)) {
 
+            cs.setString(1, orderId);
+            cs.registerOutParameter(2, Types.INTEGER); // Регистрируем выходной параметр
+            cs.execute();
+
+            int totalSum = cs.getInt(2); // Получаем значение выходного параметра
+
+            Alert result = new Alert(Alert.AlertType.INFORMATION);
+            result.setTitle("Итоговая стоимость заказа");
+            result.setHeaderText("Итоговая стоимость заказа с id_order = " + orderId + ":\n" + totalSum);
+            result.showAndWait();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при генерации отчёта \"Стоимость заказа\"");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
+        }
+    }
+    public static void reportBookPeriodPreceeds (TableView table, String dateFrom, String dateTo) {
+        String URL = getURL();
+        try (Connection connection = DriverManager.getConnection(URL);
+             Statement st = connection.createStatement()) {
+            ArrayList<String> colNames = new ArrayList<>(Arrays.asList(
+                    "ID жанра",
+                    "Название жанра",
+                    "Количество проданных книг"
+            ));
+            fillTableViewWithSelect(connection, st, table,
+                    colNames,
+                    String.format("EXEC proc_GenresTop '%s', '%s'", dateFrom, dateTo)
+            );
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при генерации отчёта \"Топ жанров\"");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
+        }
+    }
+    public static void reportBookPeriodSupplies (TableView table, String dateFrom, String dateTo) {
+        String URL = getURL();
+        try (Connection connection = DriverManager.getConnection(URL);
+             Statement st = connection.createStatement()) {
+            ArrayList<String> colNames = new ArrayList<>(Arrays.asList(
+                    "ID жанра",
+                    "Название жанра",
+                    "Количество проданных книг"
+            ));
+            fillTableViewWithSelect(connection, st, table,
+                    colNames,
+                    String.format("EXEC proc_GenresTop '%s', '%s'", dateFrom, dateTo)
+            );
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при генерации отчёта \"Топ жанров\"");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
+        }
+    }
+    public static void reportAuthorBooks (TableView table, String dateFrom, String dateTo) {
+        String URL = getURL();
+        try (Connection connection = DriverManager.getConnection(URL);
+             Statement st = connection.createStatement()) {
+            ArrayList<String> colNames = new ArrayList<>(Arrays.asList(
+                    "ID жанра",
+                    "Название жанра",
+                    "Количество проданных книг"
+            ));
+            fillTableViewWithSelect(connection, st, table,
+                    colNames,
+                    String.format("EXEC proc_GenresTop '%s', '%s'", dateFrom, dateTo)
+            );
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при генерации отчёта \"Топ жанров\"");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
+        }
+    }
 }
