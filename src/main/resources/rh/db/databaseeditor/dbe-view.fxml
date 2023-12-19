@@ -29,7 +29,15 @@
    <center>
       <VBox BorderPane.alignment="CENTER">
          <children>
-            <TableView fx:id="responseTable" editable="true" prefWidth="559.0">
+            <HBox prefHeight="22.0" prefWidth="613.0">
+               <children>
+                  <Button fx:id="btnAddNewRow" disable="true" mnemonicParsing="false" onAction="#onAddNewRowButtonClick" text="Добавить строку" />
+               </children>
+               <padding>
+                  <Insets bottom="5.0" left="10.0" top="5.0" />
+               </padding>
+            </HBox>
+            <TableView fx:id="responseTable" editable="true" prefWidth="613.0">
                <columnResizePolicy>
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                </columnResizePolicy>

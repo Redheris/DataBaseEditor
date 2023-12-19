@@ -60,6 +60,8 @@ public class Requests {
     public static void getFullTable(TableView table, String tableName, TableView newRowTable) {
         final String URL = getURL();
 
+        // FIXED: добавление строки теперь происходит не через ввод во вторую таблицу,
+        // а в специальном модальном окне через нажатие кнопки "Добавить"
         // FIXME Возвращает ошибку в консоль, не выплоняя setDisabled(false)
         // Открываем админу доступ к добавлению новых записей
 //        if (DBEditorController.isAdmin) {
@@ -71,7 +73,7 @@ public class Requests {
             DatabaseMetaData metaData = connection.getMetaData();
 
             // Получение всех столбцов таблицы tableName
-            ResultSet colNames = metaData.getColumns(null, null, tableName, null);
+            ResultSet colNames = connection.getMetaData().getColumns(null, null, tableName, null);
 
             // Список для названий стобцов, на чтение которых есть разрешение
             ArrayList<String> accessedColumns = new ArrayList<>();

@@ -1,5 +1,6 @@
 package rh.db.databaseeditor;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -29,7 +30,7 @@ public class DBEditorController {
     @FXML
     protected PasswordField password;
     @FXML
-    private Button logout, btnAddRow;
+    private Button logout, btnAddRow, btnAddNewRow;
     @FXML
     private MenuButton tablesMenu, reportsMenu;
     @FXML
@@ -86,6 +87,9 @@ public class DBEditorController {
             ResultSet checkIsAdmin = statement.executeQuery("SELECT IS_ROLEMEMBER ('db_owner')");
             checkIsAdmin.next();
             isAdmin = checkIsAdmin.getInt(1) == 1;
+
+            if (isAdmin)
+                btnAddNewRow.setDisable(false);
 
             // Создаём обработчики для отчётов
             reportOrderSum.setOnAction(e -> {
@@ -191,6 +195,7 @@ public class DBEditorController {
         newRowTable.getItems().clear();
         addNewRowBlock.setDisable(true);
         responsesMenu.setDisable(true);
+        btnAddNewRow.setDisable(true);
     }
 
     private void generateTablesMenu() {
@@ -230,7 +235,7 @@ public class DBEditorController {
         }
         // Создаем новое окно
         Stage stage = new Stage();
-        stage.setTitle("Параметры отчёта \"" + reportName  + "\"");
+        stage.setTitle("Конфигурация отчёта");
 
         stage.setScene(new Scene(root));
         // Указываем, что оно модальное
@@ -242,4 +247,27 @@ public class DBEditorController {
         stage.showAndWait();
     }
 
+    public void onAddNewRowButtonClick(ActionEvent actionEvent) {
+        EditOrAddRowWindow.setTableColumns("SaleOrder");
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("editOrAddRowWindow.fxml"));
+        Parent root;
+        try {
+            root = loader.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        // Создаем новое окно
+        Stage stage = new Stage();
+        stage.setTitle("Добавление новой строки");
+
+        stage.setScene(new Scene(root));
+        // Указываем, что оно модальное
+        stage.initModality(Modality.WINDOW_MODAL);
+        // Указываем, что оно должно блокировать главное окно
+        stage.initOwner(btnAddNewRow.getScene().getWindow());
+
+        // Открываем окно и ждем пока его закроют
+        stage.showAndWait();
+    }
 }

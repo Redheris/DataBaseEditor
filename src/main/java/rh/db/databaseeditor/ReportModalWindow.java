@@ -12,12 +12,6 @@ import java.time.LocalDate;
 import java.util.ResourceBundle;
 
 public class ReportModalWindow implements Initializable {
-    /* TODO:
-     * - Добавить обрбаотчики событиый для вводимых дат для проверки корректности периода
-     * - Адаптировать модальное окно в зависимости от выбранного отчета
-     * - Сохрнение вводимых данных
-     * - Адаптировать вывод результата для отчётов, возвращающих одно число
-     */
     @FXML
     private Label reportName, idParamName;
     @FXML
@@ -29,6 +23,7 @@ public class ReportModalWindow implements Initializable {
     @FXML
     private DatePicker dateFrom, dateTo;
 
+    // Проверка на
     private static boolean isPassed = false;
 
     protected static String reportTitle, idValue, dateToValue, dateFromValue;
@@ -75,7 +70,7 @@ public class ReportModalWindow implements Initializable {
             dateFromValue = dateFrom.getValue().toString();
             dateToValue = dateTo.getValue().toString();
         }
-
+        // Указываем, что параметры отчёта получены успешно
         isPassed = true;
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
