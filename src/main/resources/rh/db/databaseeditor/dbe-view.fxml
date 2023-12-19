@@ -15,7 +15,7 @@
             <MenuButton fx:id="reportsMenu" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Отчёты">
                <items>
                   <MenuItem fx:id="reportOrderSum" mnemonicParsing="false" text="Стоимость заказа" />
-                  <MenuItem fx:id="reportBookPeriodPreceeds" mnemonicParsing="false" text="Выручка с книги за период" />
+                  <MenuItem fx:id="reportBookPeriodProceeds" mnemonicParsing="false" text="Выручка с книги за период" />
                   <MenuItem fx:id="reportGenresTop" mnemonicParsing="false" text="Рейтинг жанров" />
                   <MenuItem fx:id="reportBookPeriodSupplies" mnemonicParsing="false" text="Количество поставок книги" />
                   <MenuItem fx:id="reportAuthorBooks" mnemonicParsing="false" text="Все книги автора" />

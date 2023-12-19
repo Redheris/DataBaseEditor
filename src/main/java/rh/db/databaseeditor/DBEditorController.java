@@ -33,20 +33,15 @@ public class DBEditorController {
     @FXML
     private MenuButton tablesMenu, reportsMenu;
     @FXML
-    private MenuItem reportOrderSum, reportBookPeriodPreceeds, reportGenresTop, reportBookPeriodSupplies, reportAuthorBooks;
+    private MenuItem reportOrderSum, reportBookPeriodProceeds, reportGenresTop, reportBookPeriodSupplies, reportAuthorBooks;
     @FXML
     private TableView responseTable, newRowTable;
 
     protected static String db, user, pass;
     protected static boolean isAdmin;
 
-    private void test(){
+    public void enableAddNewRowBlock() {
         addNewRowBlock.setDisable(false);
-    }
-
-    public static void setDisableAddNewRowBlock(boolean b) {
-        DBEditorController db = new DBEditorController();
-        db.test();
     }
 
     protected String getURLAuthPart(){
@@ -97,24 +92,36 @@ public class DBEditorController {
                 ReportModalWindow.setReportParams(
                         reportOrderSum.getText(),
                         true,
-                        false
+                        false,
+                        "ID заказа"
                 );
                 getReportParams(reportOrderSum.getText());
-                if (!ReportModalWindow.isCanceled())
+                if (ReportModalWindow.isPassed())
                     Requests.reportOrderSum(ReportModalWindow.idValue);
             });
-            reportBookPeriodPreceeds.setOnAction(e -> {
-                getReportParams(reportBookPeriodPreceeds.getText());
+            reportBookPeriodProceeds.setOnAction(e -> {
+                ReportModalWindow.setReportParams(
+                        reportBookPeriodProceeds.getText(),
+                        true,
+                        true,
+                        "ID книги"
+                );
+                getReportParams(reportBookPeriodProceeds.getText());
+                if (ReportModalWindow.isPassed())
+                    Requests.reportBookPeriodProceeds(
+                            ReportModalWindow.idValue,
+                            ReportModalWindow.dateFromValue,
+                            ReportModalWindow.dateToValue
+                    );
             });
             reportGenresTop.setOnAction(e -> {
-//                getReportParams(reportGenresTop.getId());
                 ReportModalWindow.setReportParams(
                         reportGenresTop.getText(),
                         false,
                         true
                 );
                 getReportParams(reportGenresTop.getText());
-                if (!ReportModalWindow.isCanceled())
+                if (ReportModalWindow.isPassed())
                     Requests.reportTopGenres(
                             responseTable,
                             ReportModalWindow.dateFromValue,
@@ -122,10 +129,30 @@ public class DBEditorController {
                     );
             });
             reportAuthorBooks.setOnAction(e -> {
+                ReportModalWindow.setReportParams(
+                        reportAuthorBooks.getText(),
+                        true,
+                        false,
+                        "ID автора"
+                );
                 getReportParams(reportAuthorBooks.getText());
+                if (ReportModalWindow.isPassed())
+                    Requests.reportAuthorBooks(responseTable, ReportModalWindow.idValue);
             });
             reportBookPeriodSupplies.setOnAction(e -> {
+                ReportModalWindow.setReportParams(
+                        reportBookPeriodSupplies.getText(),
+                        true,
+                        true,
+                        "ID книги"
+                );
                 getReportParams(reportBookPeriodSupplies.getText());
+                if (ReportModalWindow.isPassed())
+                    Requests.reportBookPeriodSupplies(
+                            ReportModalWindow.idValue,
+                            ReportModalWindow.dateFromValue,
+                            ReportModalWindow.dateToValue
+                    );
             });
         }
         // Произошла ошибка при подключении к серверу и базе данных

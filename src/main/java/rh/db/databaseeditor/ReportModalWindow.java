@@ -29,7 +29,7 @@ public class ReportModalWindow implements Initializable {
     @FXML
     private DatePicker dateFrom, dateTo;
 
-    private static boolean isCanceled = false;
+    private static boolean isPassed = false;
 
     protected static String reportTitle, idValue, dateToValue, dateFromValue;
     private static String nameOfIdParam = "Идентификатор ";
@@ -76,12 +76,12 @@ public class ReportModalWindow implements Initializable {
             dateToValue = dateTo.getValue().toString();
         }
 
+        isPassed = true;
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
     }
 
     public void onCancelButtonClick(ActionEvent actionEvent) {
-        isCanceled = true;
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
     }
@@ -98,16 +98,20 @@ public class ReportModalWindow implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        isCanceled = false;
+        isPassed = false;
         idBlock.setVisible(idIsNeeded);
         idBlock.setManaged(idIsNeeded);
         datePickerBlock.setVisible(dateIsNeeded);
         datePickerBlock.setManaged(dateIsNeeded);
         idParamName.setText(nameOfIdParam);
         reportName.setText(reportTitle);
+        // Сброс введённых ранее данных
+        id.setText("");
+        dateFrom.setValue(null);
+        dateTo.setValue(null);
     }
 
-    public static boolean isCanceled() {
-        return isCanceled;
+    public static boolean isPassed() {
+        return isPassed;
     }
 }
