@@ -38,7 +38,7 @@ public class DBEditorController {
     @FXML
     private TableView responseTable, newRowTable;
 
-    protected static String db, user, pass;
+    protected static String db, user, pass, currentFullTable;
     protected static boolean isAdmin;
 
     public void enableAddNewRowBlock() {
@@ -88,8 +88,6 @@ public class DBEditorController {
             checkIsAdmin.next();
             isAdmin = checkIsAdmin.getInt(1) == 1;
 
-            if (isAdmin)
-                btnAddNewRow.setDisable(false);
 
             // Создаём обработчики для отчётов
             reportOrderSum.setOnAction(e -> {
@@ -212,7 +210,9 @@ public class DBEditorController {
                     responseTable.getItems().clear();
                     newRowTable.getColumns().clear();
                     newRowTable.getItems().clear();
+                    btnAddNewRow.setDisable(!isAdmin);
                     Requests.getFullTable(responseTable, item.getText(), newRowTable);
+                    currentFullTable = item.getText();
                 });
                 tablesMenu.getItems().add(item);
             }
@@ -248,7 +248,7 @@ public class DBEditorController {
     }
 
     public void onAddNewRowButtonClick(ActionEvent actionEvent) {
-        EditOrAddRowWindow.setTableColumns("SaleOrder");
+        EditOrAddRowWindow.setTableColumns(currentFullTable);
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("editOrAddRowWindow.fxml"));
         Parent root;

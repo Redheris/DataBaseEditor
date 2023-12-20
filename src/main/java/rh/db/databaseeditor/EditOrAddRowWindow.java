@@ -14,6 +14,7 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class EditOrAddRowWindow implements Initializable {
     // TODO:
@@ -28,7 +29,7 @@ public class EditOrAddRowWindow implements Initializable {
     private Button cancelButton;
 
     private static String tableNameValue;
-    private static Map<String, String> parameters = new HashMap<>();
+    private static final Map<String, String> parameters = new HashMap<>();
 
     private static String getURL() {
         return "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" +
@@ -44,54 +45,62 @@ public class EditOrAddRowWindow implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         tableName.setText(tableNameValue);
+        parameters.clear();
         final String URL = getURL();
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
             DatabaseMetaData metaData = connection.getMetaData();
-
-            System.out.println("Where? " + tableNameValue);
-
-            // Получение всех столбцов таблицы tableName
+            // Получение данных о каждом столбце таблицы tableName
             ResultSet colNames = metaData.getColumns(null, null, tableNameValue, null);
             while (colNames.next()) {
                 String colName = colNames.getString("COLUMN_NAME");
                 String colType = colNames.getString("TYPE_NAME");
-                System.out.println(colName + " *** " + colType);
+                boolean isNullable = colNames.getInt("NULLABLE") == 1;
+                boolean isAutoIncrement = colNames.getString("IS_AUTOINCREMENT").equals("YES");
 
-                if (colType.equals("int identity")) continue;
+                if (isAutoIncrement) continue;
 
                 HBox param = new HBox();
                 param.setSpacing(20);
                 // Название столбца
-                Label paramName = new Label(colName);
+                Label paramName = new Label(colName + (isNullable ? " (NULL)" : ""));
+                paramName.setId(colName);
                 paramName.setPrefWidth(130);
                 param.getChildren().add(paramName);
 
+                // Создание разных полей ввода в зависимости от типа значения столбца
                 switch (colType) {
                     case "int" -> {
                         // Ввод значения
                         TextField tf = new TextField();
                         tf.setId(colName);
-                        tf.setOnKeyPressed(this::onIntegerTextfieldChanged);
+                        tf.setOnKeyPressed(this::onIntegerTextFieldChanged);
                         param.getChildren().add(tf);
                     }
                     case "varchar" -> {
                         TextField tf = new TextField();
                         tf.setId(colName);
+                        tf.setOnKeyTyped(this::onStringTextFieldChanged);
                         param.getChildren().add(tf);
                     }
                     case "date" -> {
                         DatePicker dp = new DatePicker();
                         dp.setEditable(false);
                         dp.setId(colName);
+                        dp.setOnAction(this::onDatePickerChanged);
                         // Выбор будущей даты сочтён возможным,
                         // а других проверок не требуется в силу отсутствия ручного ввода
 //                        dp.setOnAction(this::onDateTextfieldChanged);
                         param.getChildren().add(dp);
                     }
                     default -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Ошибка");
+                        alert.setHeaderText("Неизвестный тип столбца " + colType);
+                        alert.showAndWait();
                     }
                 }
+                parameters.put(colName, "");
                 parametersBlock.getChildren().add(param);
             }
         } catch (SQLException e) {
@@ -105,24 +114,99 @@ public class EditOrAddRowWindow implements Initializable {
     }
 
     public void onSendButtonClick(ActionEvent actionEvent) {
+        try (Connection connection = DriverManager.getConnection(getURL())) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            // Получение информации о каждом столбцц таблицы tableNameValue
+            ResultSet colNames = metaData.getColumns(null, null, tableNameValue, null);
+            // Проверка параметров для каждого столбца таблицы tableName
+            while (colNames.next()) {
+                // Характеристики столбца
+                String colName = colNames.getString("COLUMN_NAME");
+                String colType = colNames.getString("TYPE_NAME");
+                boolean isNullable = colNames.getInt("NULLABLE") == 1;
+                boolean isAutoIncrement = colNames.getString("IS_AUTOINCREMENT").equals("YES");
 
+                // Игнорирование столбца с автоинкрементом (primary key столбец ID)
+                if (isAutoIncrement) continue;
+                // Проверка значений параметров
+                if (!isNullable && parameters.get(colName).isBlank()) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Ошибка");
+                    alert.setHeaderText(String.format("Параметр %s не может быть пустым", colName));
+                    alert.showAndWait();
+                    return;
+                }
+                if (colType.equals("int") && (parameters.get(colName).isBlank() && !isNullable
+                        && !isCorrectIntegerInput(colName, parameters.get(colName))))
+                    return;
+            }
+            // Формирование запроса INSERT
+            String colNamesString = parameters.keySet().stream().collect(Collectors.joining(","));
+            StringBuilder values = new StringBuilder();
+            for (String value : parameters.values()) {
+                values.append(value.isBlank() ? "NULL," : "'" + value + "',");
+            }
+            values.deleteCharAt(values.length() - 1);
+            // Отправка запроса INSERT
+            // FIXME
+            // Возвращает ошибку "Инструкция не вернула результирующий набор."
+            connection.prepareCall(
+                    "INSERT " + tableNameValue + " (" + colNamesString + ") VALUES (" + values + ")"
+            ).executeQuery();
+            // Инфоомирование пользователя о созданной строке
+            Alert success = new Alert(Alert.AlertType.INFORMATION);
+            success.setTitle("Успешно");
+            success.setHeaderText("Запись успешно добавлена");
+            success.showAndWait();
+            // Закрытие модального окна
+            Stage stage = (Stage) cancelButton.getScene().getWindow();
+            stage.close();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-
-    // Обработчик, проверяющий корректность ввода в целочисленный TextField
-    private void onIntegerTextfieldChanged(KeyEvent event) {
-        if (event.getText().isBlank()) return;
+    private static boolean isCorrectIntegerInput(String paramName, String valueInput) {
         Alert reportInfo = new Alert(Alert.AlertType.ERROR);
-        TextField tf = (TextField) event.getSource();
         try {
-            int value = Integer.parseInt(tf.getText() + event.getText());
-            parameters.put(tf.getId(), String.valueOf(value));
+            Integer.parseInt(valueInput);
+            return true;
         }
         catch (NumberFormatException e) {
             reportInfo.setTitle("Ошибка");
-            reportInfo.setHeaderText(String.format("Параметр %s должен быть целочисленным", tf.getId()));
+            reportInfo.setHeaderText(String.format("Параметр %s должен быть целочисленным", paramName));
             reportInfo.show();
+            return false;
         }
+    }
+
+    // Обработчик ввода в TextField для целочисленного значения, проверяющий корректность
+    private void onIntegerTextFieldChanged(KeyEvent event) {
+        TextField tf = (TextField) event.getSource();
+        if (tf.getText().isBlank()){
+            parameters.replace(tf.getId(), "");
+        }
+        if (event.getText().isBlank()) return;
+        if (isCorrectIntegerInput(tf.getId(), tf.getText() + event.getText())) {
+//            intParameters.put(tf.getId(), tf.getText() + event.getText().strip());
+            parameters.replace(tf.getId(), tf.getText() + event.getText().strip());
+        }
+    }
+    // Обработчик ввода в TextField для строчного значения
+    private void onStringTextFieldChanged(KeyEvent event) {
+        TextField tf = (TextField) event.getSource();
+        if (tf.getText().isBlank()){
+            parameters.replace(tf.getId(), "");
+        }
+//        otherParameters.put(tf.getId(), tf.getText());
+        parameters.replace(tf.getId(), tf.getText());
+    }
+    // Обработчик ввода в DatePicker
+    private void onDatePickerChanged(ActionEvent event) {
+        DatePicker dp = (DatePicker) event.getSource();
+//        otherParameters.put(dp.getId(), dp.getValue().toString());
+        parameters.replace(dp.getId(), dp.getValue().toString());
     }
 
     // Выбор будущей даты сочтён возможным,
