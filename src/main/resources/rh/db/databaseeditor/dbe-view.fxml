@@ -32,10 +32,9 @@
                </items>
             </MenuButton>
             <MenuButton fx:id="viewsMenu" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Представления" />
-            <MenuButton maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Объединения">
+            <MenuButton fx:id="joinsMenu" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Объединения">
               <items>
-                <MenuItem mnemonicParsing="false" text="Автор + текст" />
-                <MenuItem mnemonicParsing="false" text="Клиент + заказ" />
+                <MenuItem mnemonicParsing="false" text="Адреса" />
               </items>
             </MenuButton>
          </children>

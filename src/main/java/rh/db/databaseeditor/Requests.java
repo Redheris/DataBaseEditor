@@ -57,6 +57,29 @@ public class Requests {
         }
     }
 
+    public static void getSelectAll (TableView table, String tableName){
+        final String URL = getURL();
+        try (Connection connection = DriverManager.getConnection(URL);
+             Statement st = connection.createStatement()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            // Получение данных о каждом столбце таблицы tableName
+            ResultSet colNames = metaData.getColumns(null, null, tableName, null);
+            // Получение списка столбцов таблицы tableName
+            ArrayList<String> colNamesList = new ArrayList<>();
+            while (colNames.next()){
+                String colName = colNames.getString("COLUMN_NAME");
+                colNamesList.add(colName);
+            }
+            fillTableViewWithSelect(connection, st, table,
+                    colNamesList,
+                    "SELECT * FROM " + tableName
+            );
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void getFullTable(TableView table, String tableName) {
         final String URL = getURL();
 
@@ -177,7 +200,7 @@ public class Requests {
             cs.setString(3, dateTo);
             cs.registerOutParameter(4, Types.INTEGER); // Регистрируем выходной параметр
             cs.execute();
-
+            // FIXME Ошибка "Слишком много аргументов"
             int totalSum = cs.getInt(4); // Получаем значение выходного параметра
 
             Alert result = new Alert(Alert.AlertType.INFORMATION);

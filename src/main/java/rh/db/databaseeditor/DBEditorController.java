@@ -197,7 +197,7 @@ public class DBEditorController {
                 item.setOnAction(event -> {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
-                    btnAddNewRow.setDisable(!isAdmin);
+                    btnAddNewRow.setDisable(false);
                     Requests.getFullTable(responseTable, item.getText());
                     currentFullTable = item.getText();
                 });
@@ -217,8 +217,9 @@ public class DBEditorController {
                 item.setOnAction(event -> {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
-                    btnAddNewRow.setDisable(!isAdmin);
-                    Requests.getFullTable(responseTable, item.getText());
+                    btnAddNewRow.setDisable(false);
+//                    Requests.getFullTable(responseTable, item.getText());
+                    Requests.getSelectAll(responseTable, item.getText());
                     currentFullTable = item.getText();
                 });
                 viewsMenu.getItems().add(item);
@@ -254,7 +255,7 @@ public class DBEditorController {
     }
 
     public void onAddNewRowButtonClick(ActionEvent actionEvent) {
-        EditOrAddRowWindow.setTableColumns(currentFullTable);
+        EditOrAddRowWindow.setTableColumns(responseTable, currentFullTable);
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("editOrAddRowWindow.fxml"));
         Parent root;

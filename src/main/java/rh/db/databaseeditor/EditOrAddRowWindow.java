@@ -27,7 +27,8 @@ public class EditOrAddRowWindow implements Initializable {
     private VBox parametersBlock;
     @FXML
     private Button cancelButton;
-
+    // Таблица с результатом из основного окна
+    private static TableView table;
     private static String tableNameValue;
     private static final Map<String, String> parameters = new HashMap<>();
 
@@ -38,8 +39,9 @@ public class EditOrAddRowWindow implements Initializable {
                 "password=" + DBEditorController.pass + ";";
     }
 
-    protected static void setTableColumns(String tableName) {
+    protected static void setTableColumns(TableView responceTable, String tableName) {
         tableNameValue = tableName;
+        table = responceTable;
     }
 
     @Override
@@ -150,9 +152,11 @@ public class EditOrAddRowWindow implements Initializable {
             // Отправка запроса INSERT
             // FIXME
             // Возвращает ошибку "Инструкция не вернула результирующий набор."
-            connection.prepareCall(
+            connection.createStatement().execute(
                     "INSERT " + tableNameValue + " (" + colNamesString + ") VALUES (" + values + ")"
-            ).executeQuery();
+            );
+            // Обновление таблицы
+            Requests.getFullTable(table, tableNameValue);
             // Инфоомирование пользователя о созданной строке
             Alert success = new Alert(Alert.AlertType.INFORMATION);
             success.setTitle("Успешно");
