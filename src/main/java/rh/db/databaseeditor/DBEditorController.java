@@ -1,5 +1,6 @@
 package rh.db.databaseeditor;
 
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,6 +14,10 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DBEditorController {
     @FXML
@@ -28,9 +33,9 @@ public class DBEditorController {
     @FXML
     protected PasswordField password;
     @FXML
-    private Button logout, btnAddNewRow, btnFilterJoin;
+    private Button logout, btnAddNewRow, btnFilterJoin, btnEditRow, btnDeleteRow;
     @FXML
-    private MenuButton tablesMenu, reportsMenu, viewsMenu;
+    private MenuButton tablesMenu, reportsMenu, viewsMenu, btnFindDescendants;
     @FXML
     private MenuItem reportOrderSum, reportBookPeriodProceeds, reportGenresTop,
             reportBookPeriodSupplies, reportAuthorBooks, joinAdresses;
@@ -39,6 +44,9 @@ public class DBEditorController {
 
     protected static String db, user, pass, currentFullTable, searchFilterPattern = "", currentJoin;
     protected static boolean isAdmin;
+    private static final List<String> tableNames = new ArrayList<>();
+    private static final Map<String, MenuButton> menuButtons = new HashMap<>();
+    private static ObservableList selectedRow;
 
     protected String getURLAuthPart(){
         db = dbName.getText();
@@ -199,6 +207,57 @@ public class DBEditorController {
                 btnFilterJoin.setVisible(true);
                 btnFilterJoin.setManaged(true);
             });
+
+            btnEditRow.setOnAction(e -> {
+                selectedRow = responseTable.getSelectionModel().getSelectedItems();
+                System.out.println(selectedRow);
+                for (Object i : selectedRow) {
+                    System.out.println(i);
+                }
+            });
+
+            // Сохранение информации о связях таблиц
+            for (String tableName : tableNames) {
+                menuButtons.put(tableName, new MenuButton());
+            }
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            for (String tableName : tableNames) {
+                ResultSet importedTables = metaData.getImportedKeys(null, null, tableName);
+                while (importedTables.next()) {
+                    String pkTableName = importedTables.getString("PKTABLE_NAME");
+                    String pkColumnName = importedTables.getString("PKCOLUMN_NAME");
+                    String fkColumnName = importedTables.getString("FKCOLUMN_NAME");
+                    String fkTableName = importedTables.getString("FKTABLE_NAME");
+                    DatabaseMetaData columnsMeta = connection.getMetaData();
+                    ResultSet columns = columnsMeta.getColumns(null, null, pkTableName, null);
+                    List<String> colNames = new ArrayList<>();
+                    while (columns.next()) {
+                        colNames.add(columns.getString("COLUMN_NAME"));
+                    }
+                    int colIndex = colNames.indexOf(pkColumnName);
+                    MenuItem item = new MenuItem(fkTableName);
+                    item.setOnAction(e -> {
+                        selectedRow = responseTable.getSelectionModel().getSelectedItems();
+                        if (selectedRow.isEmpty()){
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setHeaderText("Выберите строку таблицы");
+                            alert.showAndWait();
+                            return;
+                        }
+                        String value = selectedRow.get(colIndex).toString();
+                        value = value.substring(1, value.length() - 1).split(", ")[colIndex];
+
+                        responseTable.getItems().clear();
+                        Requests.getDescendantSelect(
+                                responseTable, fkTableName, fkColumnName, pkTableName, pkColumnName, value
+                        );
+                        currentFullTable = fkTableName;
+                        btnFindDescendants.getItems().setAll(menuButtons.get(fkTableName).getItems());
+                    });
+                    menuButtons.get(pkTableName).getItems().add(item);
+                }
+            }
         }
         // Произошла ошибка при подключении к серверу и базе данных
         catch (SQLException e) {
@@ -238,6 +297,9 @@ public class DBEditorController {
         searchValue.setManaged(false);
         btnFilterJoin.setVisible(false);
         btnFilterJoin.setManaged(false);
+        btnFindDescendants.getItems().clear();
+        tableNames.clear();
+        menuButtons.clear();
     }
 
     private void generateTablesMenu() {
@@ -245,6 +307,7 @@ public class DBEditorController {
         String sqlReq = "SELECT * FROM sys.objects WHERE [type]='U' AND is_ms_shipped=0";
         try (ResultSet resultSet = DBEditorApplication.getStatement().executeQuery(sqlReq)) {
             while (resultSet.next()) {
+                tableNames.add(resultSet.getString(1));
                 MenuItem item = new MenuItem(resultSet.getString(1));
                 item.setOnAction(event -> {
                     responseTable.getColumns().clear();
@@ -254,6 +317,8 @@ public class DBEditorController {
                     searchValue.setManaged(false);
                     btnFilterJoin.setVisible(false);
                     btnFilterJoin.setManaged(false);
+//                    btnFindDescendants = menuButtons.get(item.getText());
+                    btnFindDescendants.getItems().setAll(menuButtons.get(item.getText()).getItems());
                     Requests.getFullTable(responseTable, item.getText());
                     currentFullTable = item.getText();
                 });

@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Requests {
+    // Список для названий стобцов, на чтение которых есть разрешение
+    private static final ArrayList<String> accessedColumns = new ArrayList<>();
     private static String getURL() {
         return "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" +
                 "databaseName=" + DBEditorController.db + ";" +
@@ -38,10 +40,10 @@ public class Requests {
             table.getColumns().add(column);
         }
 
-        int coluumnsCount = resData.getMetaData().getColumnCount();
+        int columnsCount = resData.getMetaData().getColumnCount();
         while (resData.next()) {
-            Object[] rowData = new Object[coluumnsCount];
-            for (int i = 0; i < coluumnsCount; i++) {
+            Object[] rowData = new Object[columnsCount];
+            for (int i = 0; i < columnsCount; i++) {
                 if (resData.getObject(i + 1) == null)
                     rowData[i] = "NULL";
                 else
@@ -82,6 +84,7 @@ public class Requests {
 
     public static void getFullTable(TableView table, String tableName) {
         final String URL = getURL();
+        accessedColumns.clear();
 
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
@@ -90,8 +93,6 @@ public class Requests {
             // Получение всех столбцов таблицы tableName
             ResultSet colNames = connection.getMetaData().getColumns(null, null, tableName, null);
 
-            // Список для названий стобцов, на чтение которых есть разрешение
-            ArrayList<String> accessedColumns = new ArrayList<>();
             int colIndex = 0;
             // Перебор всех столбцов
             while (colNames.next()) {
@@ -294,6 +295,63 @@ public class Requests {
                             "FROM CustomerAddress adr\n" +
                             "INNER JOIN Street street ON street.id_street = adr.id_street\n" +
                             "INNER JOIN City city ON city.id_city = street.id_city\n" + where
+            );
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при обработке запроса");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
+        }
+    }
+
+    public static void getDescendantSelect (TableView table, String fkTableName, String fkColumnName,
+                                            String pkTableName, String pkColumnName, String key) {
+        final String URL = getURL();
+        try (Connection connection = DriverManager.getConnection(URL);
+             Statement st = connection.createStatement();
+             Statement st1 = connection.createStatement()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+
+            ArrayList<String> accessedColumns = new ArrayList<>();
+
+            // Получение всех столбцов таблицы tableName
+            ResultSet colNames = connection.getMetaData().getColumns(null, null, fkTableName, null);
+            while (colNames.next()) {
+                String colName = colNames.getString("COLUMN_NAME");
+                ResultSet columnPriviligies = st1.executeQuery(
+                        "EXEC sp_column_privileges @table_name = '" + fkTableName + "',"
+                                + "@column_name = '" + colName + "'"
+                );
+
+                while (columnPriviligies.next()) {
+                    // Разрешение на чтение должно быть "SELECT"
+                    if (!columnPriviligies.getString("PRIVILEGE").equals("SELECT"))
+                        continue;
+                    // Имя пользователя или роли, которым разрешено чтение
+                    String grantee = columnPriviligies.getString("GRANTEE");
+                    // Проверка, не относится ли текущий пользователь к роли db_owner или к роли grantee
+                    ResultSet checkRoles = st.executeQuery(
+                            "SELECT IS_ROLEMEMBER ('db_owner'), IS_ROLEMEMBER ('" + grantee + "')"
+                    );
+                    checkRoles.next();
+                    // Проврка наличия разрешения у текущего пользователя
+                    if (checkRoles.getInt(1) == 1
+                            || grantee.equals(metaData.getUserName())
+                            || checkRoles.getInt(2) == 1) {
+                        accessedColumns.add(colName);
+                    }
+                }
+            }
+            fillTableViewWithSelect(
+                    connection,
+                    st,
+                    table,
+                    accessedColumns,
+                "SELECT fk.[" + String.join("],fk.[", accessedColumns) + "] FROM " + pkTableName + " pk " +
+                    "INNER JOIN " + fkTableName + " fk ON fk.[" + fkColumnName + "] = pk.[" + pkColumnName +
+                    "] WHERE pk.[" + pkColumnName + "] = " + key
             );
         } catch (SQLException e) {
             e.printStackTrace();
