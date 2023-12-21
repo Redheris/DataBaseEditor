@@ -60,14 +60,6 @@ public class Requests {
     public static void getFullTable(TableView table, String tableName) {
         final String URL = getURL();
 
-        // FIXED: добавление строки теперь происходит не через ввод во вторую таблицу,
-        // а в специальном модальном окне через нажатие кнопки "Добавить"
-        // FIXME Возвращает ошибку в консоль, не выплоняя setDisabled(false)
-        // Открываем админу доступ к добавлению новых записей
-//        if (DBEditorController.isAdmin) {
-//            (new DBEditorController()).enableAddNewRowBlock();
-//        }
-
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
             DatabaseMetaData metaData = connection.getMetaData();
@@ -104,14 +96,6 @@ public class Requests {
                             || checkRoles.getInt(2) == 1) {
                         accessedColumns.add(colName);
                         colIndex++;
-                        // Добавление столбца в таблицу
-//                        TableColumn<List<Object>, Object>  column = new TableColumn<>(colName);
-//                        int col = colIndex;
-//                        column.setCellValueFactory(cellData -> {
-//                            List<Object> rowData = cellData.getValue();
-//                            return new SimpleObjectProperty<>(rowData.get(col - 1));
-//                        });
-//                        table.getColumns().add(column);
 
                         TableColumn<List<Object>, Object> column = new TableColumn<>(colName);
                         int col = colIndex;
@@ -126,7 +110,7 @@ public class Requests {
 
             fillTableViewWithSelect(connection, st, table,
                     accessedColumns,
-                    "SELECT " + String.join(",", accessedColumns) + " FROM " + tableName
+                    "SELECT [" + String.join("],[", accessedColumns) + "] FROM " + tableName
             );
         } catch (SQLException e) {
             e.printStackTrace();
