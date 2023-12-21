@@ -30,7 +30,7 @@ public class DBEditorController {
     @FXML
     private Button logout, btnAddNewRow;
     @FXML
-    private MenuButton tablesMenu, reportsMenu;
+    private MenuButton tablesMenu, reportsMenu, viewsMenu;
     @FXML
     private MenuItem reportOrderSum, reportBookPeriodProceeds, reportGenresTop, reportBookPeriodSupplies, reportAuthorBooks;
     @FXML
@@ -70,6 +70,7 @@ public class DBEditorController {
             resultInfo.showAndWait();
 
             generateTablesMenu();
+            generateViewsMenu();
 
             logout.setDisable(false);
             usernameInfo.setText(username.getText());
@@ -189,9 +190,7 @@ public class DBEditorController {
 
     private void generateTablesMenu() {
         tablesMenu.getItems().clear();
-        String sqlReq = "SELECT * " +
-                "FROM SYSOBJECTS " +
-                "WHERE xtype = 'U'";
+        String sqlReq = "SELECT * FROM sys.objects WHERE [type]='U' AND is_ms_shipped=0";
         try (ResultSet resultSet = DBEditorApplication.getStatement().executeQuery(sqlReq)) {
             while (resultSet.next()) {
                 MenuItem item = new MenuItem(resultSet.getString(1));
@@ -203,6 +202,26 @@ public class DBEditorController {
                     currentFullTable = item.getText();
                 });
                 tablesMenu.getItems().add(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void generateViewsMenu() {
+        viewsMenu.getItems().clear();
+        String sqlReq = "SELECT * FROM sys.objects WHERE [type]='V' AND is_ms_shipped=0";
+        try (ResultSet resultSet = DBEditorApplication.getStatement().executeQuery(sqlReq)) {
+            while (resultSet.next()) {
+                MenuItem item = new MenuItem(resultSet.getString(1));
+                item.setOnAction(event -> {
+                    responseTable.getColumns().clear();
+                    responseTable.getItems().clear();
+                    btnAddNewRow.setDisable(!isAdmin);
+                    Requests.getFullTable(responseTable, item.getText());
+                    currentFullTable = item.getText();
+                });
+                viewsMenu.getItems().add(item);
             }
         } catch (SQLException e) {
             e.printStackTrace();
