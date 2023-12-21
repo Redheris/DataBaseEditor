@@ -74,7 +74,7 @@ public class DBEditorController {
             logout.setDisable(false);
             usernameInfo.setText(username.getText());
             dbNameInfo.setText(dbName.getText());
-            loginInfo.setPrefWidth(100);
+            loginInfo.setPrefWidth(120);
             loginInfo.setVisible(true);
             responsesMenu.setDisable(false);
             // Проверяем, является ли пользователь админ

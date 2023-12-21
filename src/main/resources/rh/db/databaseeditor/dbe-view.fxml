@@ -105,7 +105,7 @@
                      </HBox.margin>
                   </VBox>
                   <TilePane alignment="CENTER" style="-fx-max-width: 200;" />
-                  <Button fx:id="logout" disable="true" mnemonicParsing="false" onAction="#onLogoutButtonClick" prefHeight="25.0" prefWidth="99.0" text="Отключиться" />
+                  <Button fx:id="logout" disable="true" mnemonicParsing="false" onAction="#onLogoutButtonClick" prefHeight="25.0" prefWidth="125.0" text="Отключиться" />
                </children>
                <padding>
                   <Insets right="10.0" />
