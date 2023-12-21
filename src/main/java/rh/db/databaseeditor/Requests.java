@@ -297,6 +297,11 @@ public class Requests {
             );
         } catch (SQLException e) {
             e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при обработке запроса");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
         }
     }
 }
