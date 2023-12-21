@@ -24,19 +24,20 @@ public class DBEditorController {
     @FXML
     private Label usernameInfo, dbNameInfo;
     @FXML
-    protected TextField dbName, username;
+    protected TextField dbName, username, searchValue;
     @FXML
     protected PasswordField password;
     @FXML
-    private Button logout, btnAddNewRow;
+    private Button logout, btnAddNewRow, btnFilterJoin;
     @FXML
     private MenuButton tablesMenu, reportsMenu, viewsMenu;
     @FXML
-    private MenuItem reportOrderSum, reportBookPeriodProceeds, reportGenresTop, reportBookPeriodSupplies, reportAuthorBooks;
+    private MenuItem reportOrderSum, reportBookPeriodProceeds, reportGenresTop,
+            reportBookPeriodSupplies, reportAuthorBooks, joinAdresses;
     @FXML
     private TableView responseTable;
 
-    protected static String db, user, pass, currentFullTable;
+    protected static String db, user, pass, currentFullTable, searchFilterPattern = "", currentJoin;
     protected static boolean isAdmin;
 
     protected String getURLAuthPart(){
@@ -61,6 +62,14 @@ public class DBEditorController {
             // Скрываем форму авторизации
             login_box.setVisible(false);
             password.setText(null);
+            searchValue.setText(null);
+            searchValue.setVisible(false);
+            searchValue.setManaged(false);
+            btnFilterJoin.setVisible(false);
+            btnFilterJoin.setManaged(false);
+            searchFilterPattern = "";
+            currentJoin = "";
+            currentFullTable = "";
 
             resultInfo.setTitle("Авторизация прошла успешно");
             resultInfo.setHeaderText(
@@ -92,6 +101,10 @@ public class DBEditorController {
                         false,
                         "ID заказа"
                 );
+                searchValue.setVisible(false);
+                searchValue.setManaged(false);
+                btnFilterJoin.setVisible(false);
+                btnFilterJoin.setManaged(false);
                 getReportParams(reportOrderSum.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportOrderSum(ReportModalWindow.idValue);
@@ -103,6 +116,10 @@ public class DBEditorController {
                         true,
                         "ID книги"
                 );
+                searchValue.setVisible(false);
+                searchValue.setManaged(false);
+                btnFilterJoin.setVisible(false);
+                btnFilterJoin.setManaged(false);
                 getReportParams(reportBookPeriodProceeds.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportBookPeriodProceeds(
@@ -117,6 +134,10 @@ public class DBEditorController {
                         false,
                         true
                 );
+                searchValue.setVisible(false);
+                searchValue.setManaged(false);
+                btnFilterJoin.setVisible(false);
+                btnFilterJoin.setManaged(false);
                 getReportParams(reportGenresTop.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportTopGenres(
@@ -132,6 +153,10 @@ public class DBEditorController {
                         false,
                         "ID автора"
                 );
+                searchValue.setVisible(false);
+                searchValue.setManaged(false);
+                btnFilterJoin.setVisible(false);
+                btnFilterJoin.setManaged(false);
                 getReportParams(reportAuthorBooks.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportAuthorBooks(responseTable, ReportModalWindow.idValue);
@@ -143,6 +168,10 @@ public class DBEditorController {
                         true,
                         "ID книги"
                 );
+                searchValue.setVisible(false);
+                searchValue.setManaged(false);
+                btnFilterJoin.setVisible(false);
+                btnFilterJoin.setManaged(false);
                 getReportParams(reportBookPeriodSupplies.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportBookPeriodSupplies(
@@ -150,6 +179,25 @@ public class DBEditorController {
                             ReportModalWindow.dateFromValue,
                             ReportModalWindow.dateToValue
                     );
+            });
+//            searchValue.setOnKeyPressed (e -> {
+////                switch (currentJoin){
+////                    case "adresses" ->
+////                        Requests.adressesJoin(responseTable);
+////                }
+//                searchFilterPattern = searchValue.getText();
+//            });
+            btnFilterJoin.setOnAction(e -> {
+                searchFilterPattern = searchValue.getText();
+                Requests.adressesJoin(responseTable);
+            });
+            joinAdresses.setOnAction(e -> {
+                Requests.adressesJoin(responseTable);
+                currentJoin = "adresses";
+                searchValue.setVisible(true);
+                searchValue.setManaged(true);
+                btnFilterJoin.setVisible(true);
+                btnFilterJoin.setManaged(true);
             });
         }
         // Произошла ошибка при подключении к серверу и базе данных
@@ -186,6 +234,10 @@ public class DBEditorController {
         responseTable.getItems().clear();
         responsesMenu.setDisable(true);
         btnAddNewRow.setDisable(true);
+        searchValue.setVisible(false);
+        searchValue.setManaged(false);
+        btnFilterJoin.setVisible(false);
+        btnFilterJoin.setManaged(false);
     }
 
     private void generateTablesMenu() {
@@ -198,6 +250,10 @@ public class DBEditorController {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
                     btnAddNewRow.setDisable(false);
+                    searchValue.setVisible(false);
+                    searchValue.setManaged(false);
+                    btnFilterJoin.setVisible(false);
+                    btnFilterJoin.setManaged(false);
                     Requests.getFullTable(responseTable, item.getText());
                     currentFullTable = item.getText();
                 });
@@ -218,7 +274,9 @@ public class DBEditorController {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
                     btnAddNewRow.setDisable(false);
-//                    Requests.getFullTable(responseTable, item.getText());
+                    searchValue.setVisible(false);
+                    searchValue.setManaged(false);
+                    btnFilterJoin.setVisible(false);
                     Requests.getSelectAll(responseTable, item.getText());
                     currentFullTable = item.getText();
                 });

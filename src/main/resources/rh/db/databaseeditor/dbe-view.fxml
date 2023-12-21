@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.TilePane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-
 <BorderPane minHeight="400.0" minWidth="400.0" prefHeight="489.0" prefWidth="901.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="rh.db.databaseeditor.DBEditorController">
    <left>
       <VBox fx:id="responsesMenu" disable="true" prefHeight="441.0" prefWidth="170.0" spacing="10.0" style="-fx-background-color: #aaaaaa;" BorderPane.alignment="TOP_LEFT">
@@ -34,7 +24,7 @@
             <MenuButton fx:id="viewsMenu" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Представления" />
             <MenuButton fx:id="joinsMenu" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Объединения">
               <items>
-                <MenuItem mnemonicParsing="false" text="Адреса" />
+                <MenuItem fx:id="joinAdresses" mnemonicParsing="false" text="Адреса" />
               </items>
             </MenuButton>
          </children>
@@ -45,9 +35,11 @@
    <center>
       <VBox BorderPane.alignment="CENTER">
          <children>
-            <HBox prefHeight="22.0" prefWidth="613.0">
+            <HBox prefHeight="22.0" prefWidth="731.0" spacing="10.0">
                <children>
                   <Button fx:id="btnAddNewRow" disable="true" mnemonicParsing="false" onAction="#onAddNewRowButtonClick" text="Добавить строку" />
+                  <TextField fx:id="searchValue" promptText="Search" visible="false" />
+                  <Button fx:id="btnFilterJoin" mnemonicParsing="false" text="Поиск" visible="false" />
                </children>
                <padding>
                   <Insets bottom="5.0" left="10.0" top="5.0" />
@@ -68,7 +60,7 @@
                <children>
                   <TextField fx:id="dbName" promptText="Database Name" text="BOOKSHOP" />
                   <TextField fx:id="username" promptText="Username" />
-                  <PasswordField fx:id="password" promptText="Password" />
+                  <PasswordField fx:id="password" prefWidth="149.0" promptText="Password" />
                   <Button mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="25.0" prefWidth="112.0" text="Соединить" />
                </children>
                <opaqueInsets>

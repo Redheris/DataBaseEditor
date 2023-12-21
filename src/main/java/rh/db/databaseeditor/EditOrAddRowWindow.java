@@ -17,10 +17,6 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class EditOrAddRowWindow implements Initializable {
-    // TODO:
-    // - Сохранение введённых значений в переменные по нажатию кнопки "Отправить"
-    // - Получение этих значений и контроллера и отправка запроса INSERT в БД
-
     @FXML
     private Label tableName;
     @FXML
@@ -54,6 +50,23 @@ public class EditOrAddRowWindow implements Initializable {
             DatabaseMetaData metaData = connection.getMetaData();
             // Получение данных о каждом столбце таблицы tableName
             ResultSet colNames = metaData.getColumns(null, null, tableNameValue, null);
+            ResultSet findUnique = metaData.getIndexInfo(null, null, tableNameValue, true, true);
+            ResultSet foreign = metaData.getImportedKeys(null, null, tableNameValue);
+
+//            while (findUnique.next()) {
+//                System.out.println(findUnique.getString("INDEX_NAME"));
+//                System.out.println(findUnique.getString("COLUMN_NAME"));
+//                System.out.println(findUnique.getString("NON_UNIQUE"));
+//            }
+
+//            while (foreign.next()) {
+//                System.out.println(foreign.getString("FK_NAME"));
+//                System.out.println(foreign.getString("FKTABLE_NAME"));
+//                System.out.println(foreign.getString("FKCOLUMN_NAME"));
+//                System.out.println(foreign.getString("PKTABLE_NAME"));
+//                System.out.println(foreign.getString("PKCOLUMN_NAME"));
+//            }
+
             while (colNames.next()) {
                 String colName = colNames.getString("COLUMN_NAME");
                 String colType = colNames.getString("TYPE_NAME");
@@ -150,8 +163,6 @@ public class EditOrAddRowWindow implements Initializable {
             }
             values.deleteCharAt(values.length() - 1);
             // Отправка запроса INSERT
-            // FIXME
-            // Возвращает ошибку "Инструкция не вернула результирующий набор."
             connection.createStatement().execute(
                     "INSERT " + tableNameValue + " (" + colNamesString + ") VALUES (" + values + ")"
             );

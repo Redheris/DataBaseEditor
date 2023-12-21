@@ -200,7 +200,6 @@ public class Requests {
             cs.setString(3, dateTo);
             cs.registerOutParameter(4, Types.INTEGER); // Регистрируем выходной параметр
             cs.execute();
-            // FIXME Ошибка "Слишком много аргументов"
             int totalSum = cs.getInt(4); // Получаем значение выходного параметра
 
             Alert result = new Alert(Alert.AlertType.INFORMATION);
@@ -270,6 +269,34 @@ public class Requests {
             errorAlert.setHeaderText("Произошла ошибка при генерации отчёта \"" + ReportModalWindow.reportTitle + "\"");
             errorAlert.setContentText("Текст ошибки: " + e.getMessage());
             errorAlert.showAndWait();
+        }
+    }
+
+    public static void adressesJoin(TableView table) {
+        String URL = getURL();
+        try (Connection connection = DriverManager.getConnection(URL);
+             Statement st = connection.createStatement()) {
+            ArrayList<String> colNames = new ArrayList<>(Arrays.asList(
+                    "id_address",
+                    "City",
+                    "Street",
+                    "HouseNumber",
+                    "FlatNumber"
+            ));
+            String where = (" WHERE adr.id_address LIKE '%%s%' OR city.name LIKE '%%s%' OR street.name LIKE '%%s%' OR adr.houseNum " +
+                    "LIKE '%%s%' OR adr.flatNum LIKE '%%s%'").replace("%s", DBEditorController.searchFilterPattern);
+            fillTableViewWithSelect(
+                    connection,
+                    st,
+                    table,
+                    colNames,
+                    "SELECT adr.id_address, city.name AS City, street.name AS Street, adr.houseNum, adr.flatNum\n" +
+                            "FROM CustomerAddress adr\n" +
+                            "INNER JOIN Street street ON street.id_street = adr.id_street\n" +
+                            "INNER JOIN City city ON city.id_city = street.id_city\n" + where
+            );
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }
