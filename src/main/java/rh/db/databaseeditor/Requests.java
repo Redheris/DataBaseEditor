@@ -57,7 +57,7 @@ public class Requests {
         }
     }
 
-    public static void getFullTable(TableView table, String tableName, TableView newRowTable) {
+    public static void getFullTable(TableView table, String tableName) {
         final String URL = getURL();
 
         // FIXED: добавление строки теперь происходит не через ввод во вторую таблицу,
@@ -119,7 +119,6 @@ public class Requests {
                             List<Object> rowData = cellData.getValue();
                             return new SimpleObjectProperty<>(rowData.get(col - 1));
                         });
-                        newRowTable.getColumns().add(column);
                         break;
                     }
                 }

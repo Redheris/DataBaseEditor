@@ -22,28 +22,22 @@ public class DBEditorController {
     @FXML
     private VBox responsesMenu;
     @FXML
-    private VBox addNewRowBlock;
-    @FXML
     private Label usernameInfo, dbNameInfo;
     @FXML
     protected TextField dbName, username;
     @FXML
     protected PasswordField password;
     @FXML
-    private Button logout, btnAddRow, btnAddNewRow;
+    private Button logout, btnAddNewRow;
     @FXML
     private MenuButton tablesMenu, reportsMenu;
     @FXML
     private MenuItem reportOrderSum, reportBookPeriodProceeds, reportGenresTop, reportBookPeriodSupplies, reportAuthorBooks;
     @FXML
-    private TableView responseTable, newRowTable;
+    private TableView responseTable;
 
     protected static String db, user, pass, currentFullTable;
     protected static boolean isAdmin;
-
-    public void enableAddNewRowBlock() {
-        addNewRowBlock.setDisable(false);
-    }
 
     protected String getURLAuthPart(){
         db = dbName.getText();
@@ -189,16 +183,12 @@ public class DBEditorController {
         tablesMenu.getItems().clear();
         responseTable.getColumns().clear();
         responseTable.getItems().clear();
-        newRowTable.getColumns().clear();
-        newRowTable.getItems().clear();
-        addNewRowBlock.setDisable(true);
         responsesMenu.setDisable(true);
         btnAddNewRow.setDisable(true);
     }
 
     private void generateTablesMenu() {
         tablesMenu.getItems().clear();
-        newRowTable.getItems().clear();
         String sqlReq = "SELECT * " +
                 "FROM SYSOBJECTS " +
                 "WHERE xtype = 'U'";
@@ -208,10 +198,8 @@ public class DBEditorController {
                 item.setOnAction(event -> {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
-                    newRowTable.getColumns().clear();
-                    newRowTable.getItems().clear();
                     btnAddNewRow.setDisable(!isAdmin);
-                    Requests.getFullTable(responseTable, item.getText(), newRowTable);
+                    Requests.getFullTable(responseTable, item.getText());
                     currentFullTable = item.getText();
                 });
                 tablesMenu.getItems().add(item);
@@ -224,7 +212,6 @@ public class DBEditorController {
     public void getReportParams(String reportName) {
         responseTable.getColumns().clear();
         responseTable.getItems().clear();
-        addNewRowBlock.setDisable(true);
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("reportModalWindow.fxml"));
         Parent root;
