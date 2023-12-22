@@ -24,7 +24,7 @@ public class AddRowWindow implements Initializable {
     private Button cancelButton;
     // Таблица с результатом из основного окна
     private static TableView table;
-    private static String tableNameValue;
+    private static String tableNameValue, sqlWhere = " WHERE ";
     private static final Map<String, String> parameters = new HashMap<>();
     private static boolean isEditMode = false;
 
@@ -49,19 +49,14 @@ public class AddRowWindow implements Initializable {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setHeaderText("Выберите строку таблицы");
             alert.showAndWait();
-            return;
         }
-        String value = DBEditorController.selectedRow.get(0).toString();
-        String reqWhere = "WHERE ";
-        value = String.join(",", value.substring(1, value.length() - 1).split(", "));
-
-        System.out.println(value);
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         tableName.setText(tableNameValue);
         parameters.clear();
+        sqlWhere = " WHERE ";
         final String URL = getURL();
         try (Connection connection = DriverManager.getConnection(URL);
              Statement st = connection.createStatement()) {
@@ -88,10 +83,12 @@ public class AddRowWindow implements Initializable {
 
                 String value = DBEditorController.selectedRow.get(0).toString();
                 value = value.substring(1, value.length() - 1);
-                value = String.join("-", value.split(", "));
-                for (int i = 0; i < parameters.keySet().size(); ++i) {
-                    parameters.replace(colNamesList.get(i), value.split(", ")[i]);
+//                value = String.join(",", value.split(", "));
+                for (int i = 0; i < colNamesList.size(); ++i) {
+                    parameters.put(colNamesList.get(i), value.split(", ")[i]);
+                    sqlWhere += "[" + colNamesList.get(i) + "]='" + value.split(", ")[i] + "' AND ";
                 }
+                sqlWhere = sqlWhere.substring(0, sqlWhere.length() - 5);
             }
 
             while (colNames.next()) {
@@ -118,7 +115,7 @@ public class AddRowWindow implements Initializable {
                         tf.setId(colName);
                         tf.setOnKeyPressed(this::onIntegerTextFieldChanged);
                         param.getChildren().add(tf);
-                        if (!isEditMode)
+                        if (isEditMode)
                             tf.setText(parameters.get(colName));
                     }
                     case "varchar" -> {
@@ -126,7 +123,7 @@ public class AddRowWindow implements Initializable {
                         tf.setId(colName);
                         tf.setOnKeyTyped(this::onStringTextFieldChanged);
                         param.getChildren().add(tf);
-                        if (!isEditMode)
+                        if (isEditMode)
                             tf.setText(parameters.get(colName));
                     }
                     case "date" -> {
@@ -138,7 +135,7 @@ public class AddRowWindow implements Initializable {
                         // а других проверок не требуется в силу отсутствия ручного ввода
 //                        dp.setOnAction(this::onDateTextfieldChanged);
                         param.getChildren().add(dp);
-                        if (!isEditMode)
+                        if (isEditMode)
                             dp.setValue(LocalDate.parse(parameters.get(colName)));
                     }
                     default -> {
@@ -149,7 +146,7 @@ public class AddRowWindow implements Initializable {
                     }
                 }
                 if (!isEditMode)
-                    parameters.put(colName, "");
+                    parameters.replace(colName, "");
                 parametersBlock.getChildren().add(param);
             }
         } catch (SQLException e) {
@@ -167,6 +164,8 @@ public class AddRowWindow implements Initializable {
             DatabaseMetaData metaData = connection.getMetaData();
             // Получение информации о каждом столбцц таблицы tableNameValue
             ResultSet colNames = metaData.getColumns(null, null, tableNameValue, null);
+            // Редактируемые столбцы для запроса UPDATE
+            List<String> editable = new ArrayList<>();
             // Проверка параметров для каждого столбца таблицы tableName
             while (colNames.next()) {
                 // Характеристики столбца
@@ -177,6 +176,8 @@ public class AddRowWindow implements Initializable {
 
                 // Игнорирование столбца с автоинкрементом (primary key столбец ID)
                 if (isAutoIncrement) continue;
+                // Добавление столбца в список изменяемых
+                editable.add(colName);
                 // Проверка значений параметров
                 if (!isNullable && parameters.get(colName).isBlank()) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -196,16 +197,32 @@ public class AddRowWindow implements Initializable {
                 values.append(value.isBlank() ? "NULL," : "'" + value + "',");
             }
             values.deleteCharAt(values.length() - 1);
+            // Отправки запроса UPDATE (если редактирование)
+            if (isEditMode) {
+                String sqlCols = " SET ";
+                for (String col : editable) {
+                    sqlCols += String.format("[%s]='%s'",col, parameters.get(col));
+                    if (!col.equals(editable.get(editable.size()-1)))
+                        sqlCols += ",";
+                }
+                connection.createStatement().execute(
+                        "UPDATE " + tableNameValue + sqlCols + sqlWhere
+                );
+            }
+            else
             // Отправка запроса INSERT
-            connection.createStatement().execute(
-                    "INSERT " + tableNameValue + " (" + colNamesString + ") VALUES (" + values + ")"
+                connection.createStatement().execute(
+                        "INSERT " + tableNameValue + " (" + colNamesString + ") VALUES (" + values + ")"
             );
             // Обновление таблицы
             Requests.getFullTable(table, tableNameValue);
             // Инфоомирование пользователя о созданной строке
             Alert success = new Alert(Alert.AlertType.INFORMATION);
             success.setTitle("Успешно");
-            success.setHeaderText("Запись успешно добавлена");
+            if (isEditMode)
+                success.setHeaderText("Запись успешно изменена");
+            else
+                success.setHeaderText("Запись успешно добавлена");
             success.showAndWait();
             // Закрытие модального окна
             Stage stage = (Stage) cancelButton.getScene().getWindow();
