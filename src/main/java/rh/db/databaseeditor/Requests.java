@@ -362,4 +362,42 @@ public class Requests {
             errorAlert.showAndWait();
         }
     }
+
+    public static void deleteRow(TableView table, String currentFullTable) {
+        final String URL = getURL();
+        try (Connection connection = DriverManager.getConnection(URL);
+             Statement st = connection.createStatement()) {
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet colNames = metaData.getColumns(null, null, currentFullTable, null);
+            DBEditorController.selectedRow = table.getSelectionModel().getSelectedItems();
+
+            String valueStr = DBEditorController.selectedRow.get(0).toString();
+            String[] values = valueStr.substring(1, valueStr.length() - 1).split(", ");
+            // Формирование текста запроса
+            String sqlReq = "DELETE FROM " + currentFullTable + " WHERE ";
+            int colIndex = 0;
+            while (colNames.next()) {
+                String colName = colNames.getString("COLUMN_NAME");
+                sqlReq += String.format("[%s]='%s' AND ", colName, values[colIndex]);
+                colIndex++;
+            }
+            sqlReq = sqlReq.substring(0, sqlReq.length() - 5);
+            // Запрос к БД на удаление строки
+            st.execute(sqlReq);
+            Alert success = new Alert(Alert.AlertType.INFORMATION);
+            success.setTitle("Удаление строки");
+            success.setHeaderText("Выбранная строка успешно удалена");
+            success.showAndWait();
+            // Обновление таблицы
+            Requests.getFullTable(table, currentFullTable);
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при обработке запроса");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
+        }
+    }
 }

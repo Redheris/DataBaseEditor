@@ -188,13 +188,6 @@ public class DBEditorController {
                             ReportModalWindow.dateToValue
                     );
             });
-//            searchValue.setOnKeyPressed (e -> {
-////                switch (currentJoin){
-////                    case "adresses" ->
-////                        Requests.adressesJoin(responseTable);
-////                }
-//                searchFilterPattern = searchValue.getText();
-//            });
             btnFilterJoin.setOnAction(e -> {
                 searchFilterPattern = searchValue.getText();
                 Requests.adressesJoin(responseTable);
@@ -370,6 +363,7 @@ public class DBEditorController {
     }
 
     public void onAddNewRowButtonClick(ActionEvent actionEvent) {
+
         AddRowWindow.setTableColumns(responseTable, currentFullTable);
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("addRowWindow.fxml"));
@@ -394,6 +388,12 @@ public class DBEditorController {
     }
 
     public void onEditRowButtonClick(ActionEvent actionEvent) {
+        if (DBEditorController.selectedRow == null || DBEditorController.selectedRow.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setHeaderText("Выберите строку таблицы");
+            alert.showAndWait();
+            return;
+        }
         AddRowWindow.setTableColumns(responseTable, currentFullTable, true);
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("addRowWindow.fxml"));
@@ -416,5 +416,15 @@ public class DBEditorController {
 
         // Открываем окно и ждем пока его закроют
         stage.showAndWait();
+    }
+
+    public void onDeleteRowButtonClick(ActionEvent actionEvent) {
+        if (DBEditorController.selectedRow == null || DBEditorController.selectedRow.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setHeaderText("Выберите строку таблицы");
+            alert.showAndWait();
+            return;
+        }
+        Requests.deleteRow(responseTable, currentFullTable);
     }
 }

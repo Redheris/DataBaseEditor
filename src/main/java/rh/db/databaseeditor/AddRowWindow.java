@@ -38,6 +38,7 @@ public class AddRowWindow implements Initializable {
     protected static void setTableColumns(TableView responseTable, String tableName) {
         tableNameValue = tableName;
         table = responseTable;
+        isEditMode = false;
     }
 
     protected static void setTableColumns(TableView responseTable, String tableName, boolean editMode) {
@@ -45,11 +46,6 @@ public class AddRowWindow implements Initializable {
         table = responseTable;
         isEditMode = editMode;
         DBEditorController.selectedRow = responseTable.getSelectionModel().getSelectedItems();
-        if (DBEditorController.selectedRow.isEmpty()){
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setHeaderText("Выберите строку таблицы");
-            alert.showAndWait();
-        }
     }
 
     @Override
@@ -146,7 +142,7 @@ public class AddRowWindow implements Initializable {
                     }
                 }
                 if (!isEditMode)
-                    parameters.replace(colName, "");
+                    parameters.put(colName, "");
                 parametersBlock.getChildren().add(param);
             }
         } catch (SQLException e) {
@@ -179,7 +175,8 @@ public class AddRowWindow implements Initializable {
                 // Добавление столбца в список изменяемых
                 editable.add(colName);
                 // Проверка значений параметров
-                if (!isNullable && parameters.get(colName).isBlank()) {
+                if (!isNullable &&
+                        (parameters.get(colName) == null || parameters.get(colName).isBlank())) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Ошибка");
                     alert.setHeaderText(String.format("Параметр %s не может быть пустым", colName));
@@ -197,7 +194,7 @@ public class AddRowWindow implements Initializable {
                 values.append(value.isBlank() ? "NULL," : "'" + value + "',");
             }
             values.deleteCharAt(values.length() - 1);
-            // Отправки запроса UPDATE (если редактирование)
+            // Отправка запроса UPDATE (если редактирование)
             if (isEditMode) {
                 String sqlCols = " SET ";
                 for (String col : editable) {
