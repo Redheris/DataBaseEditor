@@ -146,6 +146,11 @@ public class AddRowWindow implements Initializable {
                 parametersBlock.getChildren().add(param);
             }
         } catch (SQLException e) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при обработке запроса");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
             throw new RuntimeException(e);
         }
     }
@@ -227,6 +232,11 @@ public class AddRowWindow implements Initializable {
         }
         catch (SQLException e) {
             e.printStackTrace();
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Ошибка при обработке запроса");
+            errorAlert.setHeaderText("Произошла ошибка при обработке запроса");
+            errorAlert.setContentText("Текст ошибки: " + e.getMessage());
+            errorAlert.showAndWait();
         }
     }
 

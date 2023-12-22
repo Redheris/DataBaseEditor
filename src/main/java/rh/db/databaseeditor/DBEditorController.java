@@ -112,7 +112,11 @@ public class DBEditorController {
                 searchValue.setVisible(false);
                 searchValue.setManaged(false);
                 btnFilterJoin.setVisible(false);
+
                 btnFilterJoin.setManaged(false);
+                btnAddNewRow.setDisable(false);
+                btnEditRow.setDisable(false);
+                btnDeleteRow.setDisable(false);
                 getReportParams(reportOrderSum.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportOrderSum(ReportModalWindow.idValue);
@@ -128,6 +132,9 @@ public class DBEditorController {
                 searchValue.setManaged(false);
                 btnFilterJoin.setVisible(false);
                 btnFilterJoin.setManaged(false);
+                btnAddNewRow.setDisable(false);
+                btnEditRow.setDisable(false);
+                btnDeleteRow.setDisable(false);
                 getReportParams(reportBookPeriodProceeds.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportBookPeriodProceeds(
@@ -146,6 +153,9 @@ public class DBEditorController {
                 searchValue.setManaged(false);
                 btnFilterJoin.setVisible(false);
                 btnFilterJoin.setManaged(false);
+                btnAddNewRow.setDisable(false);
+                btnEditRow.setDisable(false);
+                btnDeleteRow.setDisable(false);
                 getReportParams(reportGenresTop.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportTopGenres(
@@ -165,6 +175,9 @@ public class DBEditorController {
                 searchValue.setManaged(false);
                 btnFilterJoin.setVisible(false);
                 btnFilterJoin.setManaged(false);
+                btnAddNewRow.setDisable(false);
+                btnEditRow.setDisable(false);
+                btnDeleteRow.setDisable(false);
                 getReportParams(reportAuthorBooks.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportAuthorBooks(responseTable, ReportModalWindow.idValue);
@@ -180,6 +193,9 @@ public class DBEditorController {
                 searchValue.setManaged(false);
                 btnFilterJoin.setVisible(false);
                 btnFilterJoin.setManaged(false);
+                btnAddNewRow.setDisable(false);
+                btnEditRow.setDisable(false);
+                btnDeleteRow.setDisable(false);
                 getReportParams(reportBookPeriodSupplies.getText());
                 if (ReportModalWindow.isPassed())
                     Requests.reportBookPeriodSupplies(
@@ -199,6 +215,9 @@ public class DBEditorController {
                 searchValue.setManaged(true);
                 btnFilterJoin.setVisible(true);
                 btnFilterJoin.setManaged(true);
+                btnAddNewRow.setDisable(false);
+                btnEditRow.setDisable(false);
+                btnDeleteRow.setDisable(false);
             });
 
             // Сохранение информации о связях таблиц
@@ -278,6 +297,8 @@ public class DBEditorController {
         responseTable.getItems().clear();
         responsesMenu.setDisable(true);
         btnAddNewRow.setDisable(true);
+        btnEditRow.setDisable(true);
+        btnDeleteRow.setDisable(true);
         searchValue.setVisible(false);
         searchValue.setManaged(false);
         btnFilterJoin.setVisible(false);
@@ -298,6 +319,8 @@ public class DBEditorController {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
                     btnAddNewRow.setDisable(false);
+                    btnEditRow.setDisable(false);
+                    btnDeleteRow.setDisable(false);
                     searchValue.setVisible(false);
                     searchValue.setManaged(false);
                     btnFilterJoin.setVisible(false);
@@ -324,6 +347,8 @@ public class DBEditorController {
                     responseTable.getColumns().clear();
                     responseTable.getItems().clear();
                     btnAddNewRow.setDisable(false);
+                    btnEditRow.setDisable(false);
+                    btnDeleteRow.setDisable(false);
                     searchValue.setVisible(false);
                     searchValue.setManaged(false);
                     btnFilterJoin.setVisible(false);
@@ -388,7 +413,8 @@ public class DBEditorController {
     }
 
     public void onEditRowButtonClick(ActionEvent actionEvent) {
-        if (DBEditorController.selectedRow == null || DBEditorController.selectedRow.isEmpty()) {
+        selectedRow = responseTable.getSelectionModel().getSelectedItems();
+        if (selectedRow == null || selectedRow.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setHeaderText("Выберите строку таблицы");
             alert.showAndWait();
@@ -419,7 +445,8 @@ public class DBEditorController {
     }
 
     public void onDeleteRowButtonClick(ActionEvent actionEvent) {
-        if (DBEditorController.selectedRow == null || DBEditorController.selectedRow.isEmpty()) {
+        selectedRow = responseTable.getSelectionModel().getSelectedItems();
+        if (selectedRow == null || selectedRow.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setHeaderText("Выберите строку таблицы");
             alert.showAndWait();
