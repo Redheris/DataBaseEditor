@@ -48,8 +48,8 @@
             <HBox prefHeight="22.0" prefWidth="731.0" spacing="10.0">
                <children>
                   <Button fx:id="btnAddNewRow" disable="true" mnemonicParsing="false" onAction="#onAddNewRowButtonClick" text="Добавить строку" />
-                  <Button fx:id="btnEditRow" mnemonicParsing="false" onAction="#onEditRowButtonClick" text="Редактировать строку" />
-                  <Button fx:id="btnDeleteRow" mnemonicParsing="false" onAction="#onDeleteRowButtonClick" text="Удалить строку" />
+                  <Button fx:id="btnEditRow" disable="true" mnemonicParsing="false" onAction="#onEditRowButtonClick" text="Редактировать строку" />
+                  <Button fx:id="btnDeleteRow" disable="true" mnemonicParsing="false" onAction="#onDeleteRowButtonClick" text="Удалить строку" />
                   <TextField fx:id="searchValue" promptText="Search" visible="false" />
                   <Button fx:id="btnFilterJoin" mnemonicParsing="false" text="Поиск" visible="false" />
                   <MenuButton fx:id="btnFindDescendants" mnemonicParsing="false" text="Найти потомков" />
