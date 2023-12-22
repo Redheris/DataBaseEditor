@@ -11,12 +11,11 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class EditOrAddRowWindow implements Initializable {
+public class AddRowWindow implements Initializable {
     @FXML
     private Label tableName;
     @FXML
@@ -27,6 +26,7 @@ public class EditOrAddRowWindow implements Initializable {
     private static TableView table;
     private static String tableNameValue;
     private static final Map<String, String> parameters = new HashMap<>();
+    private static boolean isEditMode = false;
 
     private static String getURL() {
         return "jdbc:sqlserver://localhost;encrypt=true;trustServerCertificate=true;" +
@@ -35,9 +35,27 @@ public class EditOrAddRowWindow implements Initializable {
                 "password=" + DBEditorController.pass + ";";
     }
 
-    protected static void setTableColumns(TableView responceTable, String tableName) {
+    protected static void setTableColumns(TableView responseTable, String tableName) {
         tableNameValue = tableName;
-        table = responceTable;
+        table = responseTable;
+    }
+
+    protected static void setTableColumns(TableView responseTable, String tableName, boolean editMode) {
+        tableNameValue = tableName;
+        table = responseTable;
+        isEditMode = editMode;
+        DBEditorController.selectedRow = responseTable.getSelectionModel().getSelectedItems();
+        if (DBEditorController.selectedRow.isEmpty()){
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setHeaderText("Выберите строку таблицы");
+            alert.showAndWait();
+            return;
+        }
+        String value = DBEditorController.selectedRow.get(0).toString();
+        String reqWhere = "WHERE ";
+        value = String.join(",", value.substring(1, value.length() - 1).split(", "));
+
+        System.out.println(value);
     }
 
     @Override
@@ -53,19 +71,28 @@ public class EditOrAddRowWindow implements Initializable {
             ResultSet findUnique = metaData.getIndexInfo(null, null, tableNameValue, true, true);
             ResultSet foreign = metaData.getImportedKeys(null, null, tableNameValue);
 
-//            while (findUnique.next()) {
-//                System.out.println(findUnique.getString("INDEX_NAME"));
-//                System.out.println(findUnique.getString("COLUMN_NAME"));
-//                System.out.println(findUnique.getString("NON_UNIQUE"));
-//            }
+            if (isEditMode) {
+                DBEditorController.selectedRow = table.getSelectionModel().getSelectedItems();
+                if (DBEditorController.selectedRow.isEmpty()){
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setHeaderText("Выберите строку таблицы");
+                    alert.showAndWait();
+                    return;
+                }
+                DatabaseMetaData columnsMeta = connection.getMetaData();
+                ResultSet columns = columnsMeta.getColumns(null, null, tableNameValue, null);
+                List<String> colNamesList = new ArrayList<>();
+                while (columns.next()) {
+                    colNamesList.add(columns.getString("COLUMN_NAME"));
+                }
 
-//            while (foreign.next()) {
-//                System.out.println(foreign.getString("FK_NAME"));
-//                System.out.println(foreign.getString("FKTABLE_NAME"));
-//                System.out.println(foreign.getString("FKCOLUMN_NAME"));
-//                System.out.println(foreign.getString("PKTABLE_NAME"));
-//                System.out.println(foreign.getString("PKCOLUMN_NAME"));
-//            }
+                String value = DBEditorController.selectedRow.get(0).toString();
+                value = value.substring(1, value.length() - 1);
+                value = String.join("-", value.split(", "));
+                for (int i = 0; i < parameters.keySet().size(); ++i) {
+                    parameters.replace(colNamesList.get(i), value.split(", ")[i]);
+                }
+            }
 
             while (colNames.next()) {
                 String colName = colNames.getString("COLUMN_NAME");
@@ -91,12 +118,16 @@ public class EditOrAddRowWindow implements Initializable {
                         tf.setId(colName);
                         tf.setOnKeyPressed(this::onIntegerTextFieldChanged);
                         param.getChildren().add(tf);
+                        if (!isEditMode)
+                            tf.setText(parameters.get(colName));
                     }
                     case "varchar" -> {
                         TextField tf = new TextField();
                         tf.setId(colName);
                         tf.setOnKeyTyped(this::onStringTextFieldChanged);
                         param.getChildren().add(tf);
+                        if (!isEditMode)
+                            tf.setText(parameters.get(colName));
                     }
                     case "date" -> {
                         DatePicker dp = new DatePicker();
@@ -107,6 +138,8 @@ public class EditOrAddRowWindow implements Initializable {
                         // а других проверок не требуется в силу отсутствия ручного ввода
 //                        dp.setOnAction(this::onDateTextfieldChanged);
                         param.getChildren().add(dp);
+                        if (!isEditMode)
+                            dp.setValue(LocalDate.parse(parameters.get(colName)));
                     }
                     default -> {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -115,7 +148,8 @@ public class EditOrAddRowWindow implements Initializable {
                         alert.showAndWait();
                     }
                 }
-                parameters.put(colName, "");
+                if (!isEditMode)
+                    parameters.put(colName, "");
                 parametersBlock.getChildren().add(param);
             }
         } catch (SQLException e) {

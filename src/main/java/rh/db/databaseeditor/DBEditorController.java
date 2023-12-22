@@ -46,7 +46,7 @@ public class DBEditorController {
     protected static boolean isAdmin;
     private static final List<String> tableNames = new ArrayList<>();
     private static final Map<String, MenuButton> menuButtons = new HashMap<>();
-    private static ObservableList selectedRow;
+    protected static ObservableList selectedRow;
 
     protected String getURLAuthPart(){
         db = dbName.getText();
@@ -206,14 +206,6 @@ public class DBEditorController {
                 searchValue.setManaged(true);
                 btnFilterJoin.setVisible(true);
                 btnFilterJoin.setManaged(true);
-            });
-
-            btnEditRow.setOnAction(e -> {
-                selectedRow = responseTable.getSelectionModel().getSelectedItems();
-                System.out.println(selectedRow);
-                for (Object i : selectedRow) {
-                    System.out.println(i);
-                }
             });
 
             // Сохранение информации о связях таблиц
@@ -378,9 +370,9 @@ public class DBEditorController {
     }
 
     public void onAddNewRowButtonClick(ActionEvent actionEvent) {
-        EditOrAddRowWindow.setTableColumns(responseTable, currentFullTable);
+        AddRowWindow.setTableColumns(responseTable, currentFullTable);
         FXMLLoader loader = new FXMLLoader();
-        loader.setLocation(getClass().getResource("editOrAddRowWindow.fxml"));
+        loader.setLocation(getClass().getResource("addRowWindow.fxml"));
         Parent root;
         try {
             root = loader.load();
@@ -390,6 +382,31 @@ public class DBEditorController {
         // Создаем новое окно
         Stage stage = new Stage();
         stage.setTitle("Добавление новой строки");
+
+        stage.setScene(new Scene(root));
+        // Указываем, что оно модальное
+        stage.initModality(Modality.WINDOW_MODAL);
+        // Указываем, что оно должно блокировать главное окно
+        stage.initOwner(btnAddNewRow.getScene().getWindow());
+
+        // Открываем окно и ждем пока его закроют
+        stage.showAndWait();
+    }
+
+    public void onEditRowButtonClick(ActionEvent actionEvent) {
+        AddRowWindow.setTableColumns(responseTable, currentFullTable, true);
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("addRowWindow.fxml"));
+        Parent root;
+        try {
+            root = loader.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Создаем новое окно
+        Stage stage = new Stage();
+        stage.setTitle("Редактирование строки");
 
         stage.setScene(new Scene(root));
         // Указываем, что оно модальное
